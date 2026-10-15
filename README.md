@@ -30,7 +30,8 @@ The installable ZIP includes SlormLoader.dll, AurieCore.dll, official YYToolkit.
 
 ## Install and understand
 
-Use the separate [Vortex extension](https://www.nexusmods.com/site/mods/2455) or follow [manual installation](docs/INSTALL.md). Read [what setup and EXE patching do](docs/BOOTSTRAP.md), [the JSON API](docs/STAT-MOD-API.md), [test scope](docs/TESTING.md) and [build verification](docs/VERIFYING.md).
+Unzip the .zip inside the game folder and execute SlormLoaderSetup.exe inside the game diretory. When the setup finished there will be a little dialog window telling you.
+Once finshed, you can put your Aurie mods into the "The Slormancer/mods/Aurie/" folder.
 
 ## Credits and licenses
 
