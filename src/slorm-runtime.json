@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "slormancer-runtime",
+  "name": "Slormancer Mod Runtime",
+  "version": "0.3.10",
+  "author": "nick",
+  "description": "Shared Aurie 2.0.2 with console-output fix and YYToolkit 5.0.0c runtime, stat-patch API, unified JSON/native status, diagnostics and bootstrap setup.",
+  "type": "runtime",
+  "requires": [],
+  "conflicts": [],
+  "patches": []
+}

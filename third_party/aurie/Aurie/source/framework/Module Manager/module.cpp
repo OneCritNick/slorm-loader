@@ -1,0 +1,959 @@
+#include "module.hpp"
+#include <Psapi.h>
+#include <Zydis/Zydis.h>
+
+namespace Aurie
+{
+	AurieStatus Internal::MdpCreateModule(
+		IN const fs::path& ImagePath, 
+		IN HMODULE ImageModule,
+		IN bool ProcessExports,
+		IN uint8_t BitFlags,
+		OUT AurieModule& Module
+	)
+	{
+		AurieModule temp_module;
+		AurieStatus last_status = AURIE_SUCCESS;
+
+		// Populate known fields first
+		temp_module.Flags.Bitfield = BitFlags;
+		temp_module.ImagePath = ImagePath;
+
+		if (ProcessExports)
+		{
+			last_status = MdpProcessImageExports(
+				ImagePath,
+				ImageModule,
+				&temp_module
+			);
+
+			if (!AurieSuccess(last_status))
+			{
+				return last_status;
+			}
+		}
+
+		last_status = MdpQueryModuleInformation(
+			ImageModule,
+			&temp_module.ImageBase.Pointer,
+			&temp_module.ImageSize,
+			&temp_module.ImageEntrypoint.Pointer
+		);
+
+		if (!AurieSuccess(last_status))
+		{
+			return last_status;
+		}
+
+		Module = std::move(temp_module);
+
+		return AURIE_SUCCESS;
+	}
+
+	bool Internal::MdpIsModuleMarkedForPurge(
+		IN AurieModule* Module
+	)
+	{
+		return Module->Flags.MarkedForPurge;
+	}
+
+	void Internal::MdpMarkModuleForPurge(
+		IN AurieModule* Module
+	)
+	{
+		Module->Flags.MarkedForPurge = true;
+	}
+
+	void Internal::MdpPurgeMarkedModules()
+	{
+		// Loop through all the modules marked for purge
+		for (auto& module : g_LdrModuleList)
+		{
+			// Unmap the module, but don't call the unload routine, and don't remove it from the list
+			if (MdpIsModuleMarkedForPurge(&module))
+				MdpUnmapImage(&module, false, false);
+		}
+
+		// Remove the now unloaded modules from our list
+		// Note we can't do this in the for loop, since that'd invalidate the iterators
+		g_LdrModuleList.remove_if(
+			[](AurieModule& Module) -> bool
+			{
+				return MdpIsModuleMarkedForPurge(&Module);
+			}
+		);
+	}
+
+	AurieStatus Internal::MdpMapImage(
+		IN const fs::path& ImagePath, 
+		OUT HMODULE& ImageBase
+	)
+	{
+		// If the file doesn't exist, we have nothing to map
+		std::error_code ec;
+		if (!fs::exists(ImagePath, ec))
+			return AURIE_FILE_NOT_FOUND;
+
+		AurieStatus last_status = AURIE_SUCCESS;
+		unsigned short target_arch = 0, self_arch = 0;
+		
+		// Query the target image architecture
+		last_status = PpQueryImageArchitecture(
+			ImagePath,
+			target_arch
+		);
+
+		if (!AurieSuccess(last_status))
+			return last_status;
+
+		// Query the current architecture
+		last_status = PpGetCurrentArchitecture(
+			self_arch
+		);
+
+		// If we fail to query the current architecture, we bail.
+		if (!AurieSuccess(last_status))
+			return last_status;
+
+		// Don't try to load modules which are the wrong architecture
+		if (target_arch != self_arch)
+			return AURIE_INVALID_ARCH;
+
+		// Make sure the image has the required exports
+		bool has_framework_init = PpFindFileExportByName(ImagePath, "__AurieFrameworkInit") != 0;
+		bool has_module_entry = PpFindFileExportByName(ImagePath, "ModuleInitialize") != 0;
+		bool has_module_preinit = PpFindFileExportByName(ImagePath, "ModulePreinitialize") != 0;
+
+		// If the image doesn't have a framework init function, we can't load it.
+		if (!has_framework_init)
+			return AURIE_INVALID_SIGNATURE;
+
+		// If we don't have a module entry OR a module preinitialize function, we can't load.
+		bool has_either_entry = has_module_entry || has_module_preinit;
+		if (!has_either_entry)
+			return AURIE_INVALID_SIGNATURE;
+
+		AurieModule* potential_loaded_copy = nullptr;
+		last_status = MdpLookupModuleByPath(
+			ImagePath,
+			potential_loaded_copy
+		);
+
+		DbgPrintEx(
+			LOG_SEVERITY_TRACE,
+			"MdpLookupModuleByPath(%S) returns %p (%s)",
+			ImagePath.wstring().c_str(), 
+			potential_loaded_copy, 
+			AurieStatusToString(last_status)
+		);
+
+		// If there's a module that's already loaded from the same path, deny loading it twice
+		if (AurieSuccess(last_status))
+			return AURIE_OBJECT_ALREADY_EXISTS;
+
+		if (g_LdrpCallInitRoutine)
+		{
+			last_status = MmCreateUnsafeHook(
+				g_ArInitialImage, 
+				"LdrpCallInitRoutine",
+				g_LdrpCallInitRoutine,
+				MdpCallInitRoutineReplacementFunction,
+				nullptr
+			);
+
+			if (!AurieSuccess(last_status))
+			{
+				DbgPrintEx(LOG_SEVERITY_WARNING, "Failed to create hook on LdrpCallInitRoutine.");
+			}
+		}
+
+		// Load the image into memory and make sure we loaded it
+		HMODULE image_module = LoadLibraryW(ImagePath.wstring().c_str());
+
+		if (g_LdrpCallInitRoutine)
+		{
+			last_status = MmRemoveHook(g_ArInitialImage, "LdrpCallInitRoutine");
+
+			if (!AurieSuccess(last_status))
+			{
+				DbgPrintEx(LOG_SEVERITY_WARNING, "Failed to remove hook on LdrpCallInitRoutine.");
+			}
+		}
+
+		if (!image_module)
+			return AURIE_EXTERNAL_ERROR;
+
+		ImageBase = image_module;
+		return AURIE_SUCCESS;
+	}
+
+	void Internal::MdpBuildModuleList(
+		IN const fs::path& BaseFolder, 
+		IN bool Recursive, 
+		IN std::function<bool(const fs::directory_entry& Entry)> Predicate,
+		OUT std::vector<fs::path>& Files
+	)
+	{
+		std::error_code ec;
+		Files.clear();
+
+		if (Recursive)
+		{
+			for (auto& entry : fs::recursive_directory_iterator(BaseFolder, ec))
+				if (Predicate(entry))
+					Files.push_back(entry.path());
+
+			return;
+		}
+
+		for (auto& entry : fs::recursive_directory_iterator(BaseFolder, ec))
+			if (Predicate(entry))
+				Files.push_back(entry.path());	
+	}
+
+	AurieModule* Internal::MdpAddModuleToList(
+		IN AurieModule&& Module
+	)
+	{
+		return &g_LdrModuleList.emplace_back(std::move(Module));
+	}
+
+	AurieStatus Internal::MdpQueryModuleInformation(
+		IN HMODULE Module, 
+		OPTIONAL OUT PVOID* ModuleBase,
+		OPTIONAL OUT uint32_t* SizeOfModule, 
+		OPTIONAL OUT PVOID* EntryPoint
+	)
+	{
+		// Query the information by asking Windows
+		MODULEINFO module_info = {};
+		if (!GetModuleInformation(
+			GetCurrentProcess(),
+			Module,
+			&module_info,
+			sizeof(module_info)
+		))
+		{
+			return AURIE_EXTERNAL_ERROR;
+		}
+
+		// Fill in what the caller wants
+		if (ModuleBase)
+			*ModuleBase = module_info.lpBaseOfDll;
+
+		if (SizeOfModule)
+			*SizeOfModule = module_info.SizeOfImage;
+
+		if (EntryPoint)
+			*EntryPoint = module_info.EntryPoint;
+
+		return AURIE_SUCCESS;
+	}
+
+	fs::path& Internal::MdpGetImagePath(
+		IN AurieModule* Module
+	)
+	{
+		return Module->ImagePath;
+	}
+
+	AurieStatus Internal::MdpGetImageFolder(
+		IN AurieModule* Module, 
+		OUT fs::path& Path
+	)
+	{
+		fs::path& module_path = Internal::MdpGetImagePath(Module);
+
+		if (!module_path.has_parent_path())
+			return AURIE_INVALID_PARAMETER;
+
+		Path = module_path.parent_path();
+		return AURIE_SUCCESS;
+	}
+
+	AurieStatus Internal::MdpGetNextModule(
+		IN AurieModule* Module, 
+		OUT AurieModule*& NextModule
+	)
+	{
+		// Find the module in our list (gets an iterator)
+		auto list_iterator = std::find(
+			g_LdrModuleList.begin(),
+			g_LdrModuleList.end(),
+			*Module
+		);
+
+		// Make sure that module is indeed in our list
+		if (list_iterator == std::end(g_LdrModuleList))
+			return AURIE_INVALID_PARAMETER;
+
+		// Compute the distance from the beginning of the list to the module
+		size_t distance = std::distance(g_LdrModuleList.begin(), list_iterator);
+
+		// Advance to the next element
+		distance = (distance + 1) % g_LdrModuleList.size();
+		AurieModule& next_module = *std::next(g_LdrModuleList.begin(), distance);
+
+		NextModule = &next_module;
+		
+		return AURIE_SUCCESS;
+	}
+
+	PVOID Internal::MdpGetModuleBaseAddress(
+		IN AurieModule* Module
+	)
+	{
+		return Module->ImageBase.Pointer;
+	}
+
+	EXPORTED AurieStatus Internal::MdpLookupModuleByPath(
+		IN const fs::path& ModulePath,
+		OUT AurieModule*& Module
+	)
+	{
+		auto iterator = std::find_if(
+			g_LdrModuleList.begin(),
+			g_LdrModuleList.end(),
+			[ModulePath](const AurieModule& Module) -> bool
+			{
+				return fs::equivalent(ModulePath, Module.ImagePath);
+			}
+		);
+
+		if (iterator == g_LdrModuleList.end())
+			return AURIE_OBJECT_NOT_FOUND;
+
+		Module = &(*iterator);
+		
+		return AURIE_SUCCESS;
+	}
+
+	AurieStatus Internal::MdpProcessImageExports(
+		IN const fs::path& ImagePath, 
+		IN HMODULE ImageBaseAddress, 
+		IN OUT AurieModule* ModuleImage
+	)
+	{
+		// Find all the required functions
+		uintptr_t framework_init_offset = PpFindFileExportByName(ImagePath, "__AurieFrameworkInit");
+		uintptr_t module_init_offset = PpFindFileExportByName(ImagePath, "ModuleInitialize");
+
+		uintptr_t module_callback_offset = PpFindFileExportByName(ImagePath, "ModuleOperationCallback");
+		uintptr_t module_entrypoint_offset = PpFindFileExportByName(ImagePath, "ModuleEntrypoint");
+		uintptr_t module_preload_offset = PpFindFileExportByName(ImagePath, "ModulePreinitialize");
+		uintptr_t module_unload_offset = PpFindFileExportByName(ImagePath, "ModuleUnload");
+
+		// Cast the problems away
+		char* image_base = reinterpret_cast<char*>(ImageBaseAddress);
+
+		AurieEntry module_init = reinterpret_cast<AurieEntry>(image_base + module_init_offset);
+		AurieEntry module_preload = reinterpret_cast<AurieEntry>(image_base + module_preload_offset);
+		AurieEntry module_unload = reinterpret_cast<AurieEntry>(image_base + module_unload_offset);
+		AurieEntry module_entrypoint = reinterpret_cast<AurieEntry>(image_base + module_entrypoint_offset);
+		AurieLoaderEntry framework_init = reinterpret_cast<AurieLoaderEntry>(image_base + framework_init_offset);
+		AurieModuleCallback module_callback = reinterpret_cast<AurieModuleCallback>(image_base + module_callback_offset);
+
+		DbgPrintEx(LOG_SEVERITY_TRACE, "MdpProcessImageExports '%S'", ImagePath.wstring().c_str());
+		DbgPrintEx(LOG_SEVERITY_TRACE, "- __AurieFrameworkInit offset: %" PRIXPTR, framework_init_offset);
+		DbgPrintEx(LOG_SEVERITY_TRACE, "- ModuleInitialize offset: %" PRIXPTR, module_init_offset);
+		DbgPrintEx(LOG_SEVERITY_TRACE, "- ModuleOperationCallback offset: %" PRIXPTR, module_callback_offset);
+		DbgPrintEx(LOG_SEVERITY_TRACE, "- ModuleEntrypoint offset: %" PRIXPTR, module_entrypoint_offset);
+		DbgPrintEx(LOG_SEVERITY_TRACE, "- ModulePreinitialize offset: %" PRIXPTR, module_preload_offset);
+		DbgPrintEx(LOG_SEVERITY_TRACE, "- ModuleUnload offset: %" PRIXPTR, module_unload_offset);
+
+
+		// If the offsets are zero, the function wasn't found, which means we shouldn't populate the field.
+		if (module_init_offset)
+			ModuleImage->ModuleInitialize = module_init;
+
+		if (module_preload_offset)
+			ModuleImage->ModulePreinitialize = module_preload;
+
+		if (framework_init_offset)
+			ModuleImage->FrameworkInitialize = framework_init;
+
+		if (module_callback_offset)
+			ModuleImage->ModuleOperationCallback = module_callback;
+
+		if (module_unload_offset)
+			ModuleImage->ModuleUnload = module_unload;
+
+		if (module_entrypoint_offset)
+			ModuleImage->ModuleEntrypoint = module_entrypoint;
+
+		// We always need __AurieFrameworkInit to exist.
+		// We also need either a ModuleInitialize or a ModulePreinitialize or a ModuleEntrypoint function.
+		return ((module_init_offset || module_preload_offset || module_entrypoint_offset) && framework_init_offset)
+			? AURIE_SUCCESS : AURIE_FILE_PART_NOT_FOUND;
+	}
+
+	bool Internal::MdpIsCurrentBuildDebug()
+	{
+#ifdef NDEBUG
+		return false;
+#else
+		return true;
+#endif
+	}
+
+	AurieStatus Internal::MdpVerifyModuleBuild(
+		IN HMODULE ImageBaseAddress
+	)
+	{
+		// Try to get the __AurieIsDebugBuild function. Defined and exported by SH >= v2.0.0
+		using FN_IsDebugBuild = bool(*)();
+		auto is_module_debug_build = reinterpret_cast<FN_IsDebugBuild>(GetProcAddress(ImageBaseAddress, "__AurieIsDebugBuild"));
+
+		// If unavailable, return.
+		if (!is_module_debug_build)
+			return AURIE_NOT_IMPLEMENTED;
+
+		return (MdpIsCurrentBuildDebug() == is_module_debug_build()) ? AURIE_SUCCESS : AURIE_VERIFICATION_FAILURE;
+	}
+
+	// The ignoring of return values here is on purpose, we just have to power through
+	// and unload / free what we can.
+	AurieStatus Internal::MdpUnmapImage(
+		IN AurieModule* Module,
+		IN bool RemoveFromList,
+		IN bool CallUnloadRoutine
+	)
+	{
+		AurieStatus last_status = AURIE_SUCCESS;
+
+		// We don't have to do anything else, since SafetyHook will handle everything for us.
+		// Truly a GOATed library, thank you @localcc for telling me about it love ya
+		Module->InlineHooks.clear();
+		Module->MidHooks.clear();
+
+		// Call the unload entry if needed
+		if (CallUnloadRoutine)
+		{
+			last_status = MdpDispatchEntry(
+				Module,
+				Module->ModuleUnload
+			);
+		}
+
+		// Remove the module's operation callback
+		Module->ModuleOperationCallback = nullptr;
+
+		// Destory all interfaces created by the module
+		for (auto& module_interface : Module->InterfaceTable)
+		{
+			if (module_interface.Interface)
+				module_interface.Interface->Destroy();
+		}
+
+		// Wipe them off the interface table
+		// Note these can't be freed, they're allocated by the owner module
+		Module->InterfaceTable.clear();
+
+		// Free all memory allocated by the module (except persistent memory)
+		for (auto& memory_allocation : Module->MemoryAllocations)
+		{
+			MmpFreeMemory(
+				memory_allocation.OwnerModule,
+				memory_allocation.AllocationBase,
+				false
+			);
+		}
+
+		// Remove all the allocation entries, they're now invalid
+		Module->MemoryAllocations.clear();
+
+		// Free the module
+		FreeLibrary(Module->ImageBase.Module);
+
+		// Remove the module from our list if needed
+		if (RemoveFromList)
+			g_LdrModuleList.remove(*Module);
+
+		return last_status;
+	}
+
+	AurieStatus Internal::MdpDispatchEntry(
+		IN AurieModule* Module,
+		IN AurieEntry Entry
+	)
+	{
+		// Ignore dispatch attempts for the initial module
+		if (Module == g_ArInitialImage)
+			return AURIE_SUCCESS;
+
+		// Ignore dispatch attempts for null functions
+		// 
+		// Note that while MmpVerifyCallback does check for this,
+		// I don't actually want a print to happen.
+		//
+		// This prevents crashes when unloading, as printing from ArDetachProcess context is forbidden.
+		if (Entry == nullptr)
+			return AURIE_SUCCESS;
+
+		// Ignore invalid functions 
+		if (!AurieSuccess(MmpVerifyCallback(Module, Entry)))
+		{
+			std::wstring module_name;
+			MdGetImageFilename(Module, module_name);
+
+			DbgPrintEx(
+				LOG_SEVERITY_ERROR,
+				"Callback verification failed for module '%S' at %p (method %p)",
+				module_name.c_str(),
+				MdpGetModuleBaseAddress(Module),
+				Entry
+			);
+
+			return AURIE_SUCCESS;
+		}
+
+		ObpDispatchModuleOperationCallbacks(
+			Module, 
+			Entry, 
+			true
+		);
+
+		AurieStatus module_status = Module->FrameworkInitialize(
+			g_ArInitialImage,
+			PpGetFrameworkRoutine,
+			Entry,
+			MdpGetImagePath(Module),
+			Module
+		);
+
+		ObpDispatchModuleOperationCallbacks(
+			Module, 
+			Entry, 
+			false
+		);
+
+		return module_status;
+	}
+
+	void Internal::MdpMapFolder(
+		IN const fs::path& Folder, 
+		IN bool Recursive,
+		IN bool IsRuntimeLoad,
+		OPTIONAL OUT size_t* NumberOfMappedModules
+	)
+	{
+		std::vector<fs::path> modules_to_map;
+
+		MdpBuildModuleList(
+			Folder,
+			Recursive,
+			MdpIsValidModulePredicate,
+			modules_to_map
+		);
+
+		std::sort(
+			modules_to_map.begin(),
+			modules_to_map.end()
+		);
+
+		size_t loaded_count = 0;
+		for (auto& module : modules_to_map)
+		{
+			AurieModule* loaded_module = nullptr;
+
+			if (AurieSuccess(MdMapImageEx(module, IsRuntimeLoad, loaded_module)))
+				loaded_count++;
+		}
+
+		if (NumberOfMappedModules)
+			*NumberOfMappedModules = loaded_count;
+	}
+
+	AurieStatus Internal::MdpMapModulesFromList(
+		IN const std::vector<fs::path>& ModuleList
+	)
+	{
+		AurieStatus last_status = AURIE_SUCCESS;
+
+		// Determine if we're doing a runtime load.
+		// Runtime loads are done when the process is no longer suspended.
+		bool is_process_suspended = false;
+		last_status = ElIsProcessSuspended(is_process_suspended);
+		
+		if (!AurieSuccess(last_status))
+			return last_status;
+
+		// Loop over all the modules
+		for (auto path : ModuleList)
+		{
+			// Map the image.
+			AurieModule* module = nullptr;
+			last_status = MdMapImageEx(
+				path,
+				!is_process_suspended,
+				module
+			);
+
+			// If not successful, we log an error, but don't end iteration.
+			if (!AurieSuccess(last_status))
+			{
+				DbgPrintEx(
+					LOG_SEVERITY_ERROR, 
+					"Cannot load module '%S' (%s)", 
+					path.native().c_str(),
+					AurieStatusToString(last_status)
+				);
+			}
+		}
+
+		return AURIE_SUCCESS;
+	}
+
+	bool Internal::MdpIsValidModulePredicate(
+		IN const fs::directory_entry& Entry
+	)
+	{
+		if (!Entry.is_regular_file())
+			return false;
+
+		if (!Entry.path().has_filename())
+			return false;
+	
+		if (!Entry.path().filename().has_extension())
+			return false;
+
+		if (Entry.path().filename().extension().compare(L".dll"))
+			return false;
+
+		return true;
+	}
+
+	BOOLEAN NTAPI Internal::MdpCallInitRoutineReplacementFunction(
+		IN PVOID EntryPoint,
+		IN PVOID BaseAddress,
+		IN ULONG Reason,
+		IN PVOID Context
+	)
+	{
+		// The AurieModule object hasn't yet been created by the point we get here.
+		// We need to check if the __AurieFrameworkInit function exists, and if it does, call it
+		// in order to initialize the module before its CRT init tries to create eg. static variables which may require Aurie.
+
+		using PFN_LdrpCallInitRoutine = decltype(&MdpCallInitRoutineReplacementFunction);
+
+		if (Reason == DLL_PROCESS_ATTACH)
+		{
+			// Check if the module has an AurieFrameworkInit function.
+			auto fwk_init = reinterpret_cast<AurieLoaderEntry>(GetProcAddress(static_cast<HMODULE>(BaseAddress), "__AurieFrameworkInit"));
+
+			// Initialize the basic state of the module if the framework init function exists.
+			if (fwk_init)
+				fwk_init(g_ArInitialImage, PpGetFrameworkRoutine, nullptr, {}, nullptr);
+		}
+
+		// Call the original function.
+		return static_cast<PFN_LdrpCallInitRoutine>(MmGetHookTrampoline(g_ArInitialImage, "LdrpCallInitRoutine"))(
+			EntryPoint,
+			BaseAddress,
+			Reason,
+			Context
+		);
+	}
+
+	bool Internal::MdpSetupLdrpCallInitRoutinePointer()
+	{
+		const HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+
+		uint64_t ntdll_text_base = 0; size_t ntdll_text_size = 0;
+
+		// If we can't find the bounds of ntdll's .text section, we can't determine if a pointer is inside it.
+		if (!AurieSuccess(PpiGetModuleSectionBounds(ntdll, ".text", ntdll_text_base, ntdll_text_size)))
+			return false;
+
+		// PpiGetModuleSectionBounds gives the RVA of the section as the beginning, so add the base to it.
+		ntdll_text_base += reinterpret_cast<uint64_t>(ntdll);
+
+		PVOID backtrace_array[64] = { 0 };
+		WORD captured_frames = RtlCaptureStackBackTrace(0, 64, &backtrace_array[0], nullptr);
+
+		// Definitely not YYTK v5 code
+		auto DisassembleInstructionsByRange = [](uint64_t Base, size_t Size) -> std::vector<ZydisDisassembledInstruction>
+			{
+				const uint16_t image_arch = (sizeof(PVOID) == sizeof(uint64_t)) ? IMAGE_FILE_MACHINE_AMD64 : IMAGE_FILE_MACHINE_I386;
+
+				std::vector<ZydisDisassembledInstruction> instructions;
+
+				// Disassemble each instruction in the range.
+				ZyanU64 current_address = static_cast<ZyanU64>(Base);
+				while (current_address < (static_cast<ZyanU64>(Base) + Size))
+				{
+					ZydisDisassembledInstruction disassembled_instruction;
+					ZyanStatus status = ZydisDisassembleIntel(
+						image_arch == IMAGE_FILE_MACHINE_AMD64 ? ZYDIS_MACHINE_MODE_LONG_64 : ZYDIS_MACHINE_MODE_LEGACY_32,
+						current_address,
+						reinterpret_cast<PVOID>(current_address),
+						ZYDIS_MAX_INSTRUCTION_LENGTH,
+						&disassembled_instruction
+					);
+
+					// If the disassembly fails, advance one byte and try again.
+					if (!ZYAN_SUCCESS(status))
+					{
+						current_address++;
+						continue;
+					}
+
+					// Otherwise continue to the next instruction in line.
+					current_address += disassembled_instruction.info.length;
+					instructions.push_back(disassembled_instruction);
+				}
+
+				return instructions;
+			};
+
+		for (WORD i = 0; i < captured_frames; i++)
+		{
+			uintptr_t entry_address = std::bit_cast<uintptr_t>(backtrace_array[i]);
+
+			if (entry_address < ntdll_text_base || entry_address > ntdll_text_base + ntdll_text_size)
+				continue;
+
+			// First address is inside LdrpInitRoutine.
+			// We must now go up a little, and find the start of the function.
+			// All functions have some 0xCC padding above them.
+			// The trick is therefore to disassemble all the opcodes, find the last INT3, 
+			// and find the instruction after - that marks the function start.
+
+			// Go up a little.
+			entry_address -= 0x100;
+
+			// Disassemble all instructions in the range using code that's DEFINITELY NOT from YYTK v5.
+			auto disasm_result = DisassembleInstructionsByRange(entry_address, 0x100);
+
+			// Find the last INT3
+			const ZydisDisassembledInstruction* target_instruction = nullptr;
+			for (const auto& instr : disasm_result)
+				if (instr.info.mnemonic == ZYDIS_MNEMONIC_INT3)
+					target_instruction = &instr;
+
+			// There has to be one, or else something is wrong?
+			if (!target_instruction)
+				return false;
+
+			// ... and finally the instruction after, since a std::vector is contiguous in memory.
+			target_instruction++;
+
+			g_LdrpCallInitRoutine = reinterpret_cast<PVOID>(target_instruction->runtime_address);
+			return true;
+		}
+
+		return false;
+	}
+
+	AurieStatus MdMapImage(
+		IN const fs::path& ImagePath, 
+		OUT AurieModule*& Module
+	)
+	{
+		return MdMapImageEx(
+			ImagePath,
+			true,
+			Module
+		);
+	}
+
+	AurieStatus MdMapImageEx(
+		IN const fs::path& ImagePath,
+		IN bool IsRuntimeLoad,
+		OUT AurieModule*& Module
+	)
+	{
+		AurieStatus last_status = AURIE_SUCCESS;
+		HMODULE image_base = nullptr;
+
+		// Map the image
+		last_status = Internal::MdpMapImage(ImagePath, image_base);
+		DbgPrintEx(
+			LOG_SEVERITY_TRACE, 
+			"[MdMapImageEx] MdpMapImage(%S) returns %s (GLE 0x%x)", 
+			ImagePath.filename().c_str(),
+			AurieStatusToString(last_status),
+			GetLastError()
+		);
+
+		if (!AurieSuccess(last_status))
+			return last_status;
+
+		// Create the module object
+		AurieModule module_object = {};
+		last_status = Internal::MdpCreateModule(
+			ImagePath,
+			image_base,
+			true,
+			0,
+			module_object
+		);
+
+		// Verify image integrity
+		last_status = Internal::MmpVerifyCallback(&module_object, module_object.FrameworkInitialize);
+		if (!AurieSuccess(last_status))
+			return last_status;
+
+		module_object.Flags.IsRuntimeLoaded = IsRuntimeLoad;
+
+		// Verify module build configuration
+		last_status = Internal::MdpVerifyModuleBuild(image_base);
+
+		if (!AurieSuccess(last_status))
+		{
+			// Hope it succeeds - worst case, we print an empty string.
+			std::wstring module_name;
+			MdGetImageFilename(
+				&module_object,
+				module_name
+			);
+
+			// AURIE_NOT_IMPLEMENTED means that the module doesn't export an __AurieIsDebugBuild function.
+			// For preserving backwards compat, we don't hard-reject that.
+			if (last_status != AURIE_NOT_IMPLEMENTED)
+			{
+				DbgPrintEx(
+					LOG_SEVERITY_CRITICAL,
+					"Module '%S' was built using wrong configuration! Use '%s' when targeting this build of Aurie.",
+					module_name.c_str(),
+					Internal::MdpIsCurrentBuildDebug() ? "Debug" : "Release"
+				);
+
+				return last_status;
+			}
+
+			DbgPrintEx(
+				LOG_SEVERITY_WARNING,
+				"Module '%S' compiler configuration could not be verified. Assuming '%s'.",
+				module_name.c_str(),
+				Internal::MdpIsCurrentBuildDebug() ? "Debug" : "Release"
+			);
+		}
+
+		// Add the module to the module list before running module code
+		// No longer safe to access module_object
+		Module = Internal::MdpAddModuleToList(std::move(module_object));
+
+		// If we're loaded at runtime, we have to call the module methods manually
+		if (IsRuntimeLoad)
+		{
+			// Dispatch Module Preinitialize to not break modules that depend on it (eg. YYTK)
+			last_status = Internal::MdpDispatchEntry(
+				Module,
+				Module->ModulePreinitialize
+			);
+
+			// Remove module if Preinitialize failed
+			if (!AurieSuccess(last_status))
+			{
+				Internal::MdpMarkModuleForPurge(Module); 
+				Internal::MdpPurgeMarkedModules();
+
+				return last_status;
+			}
+
+			Module->Flags.IsPreloaded = true;
+
+			// Check the environment we are in. This is to detect plugins loaded by other plugins
+			// from their ModulePreinitialize routines. In such cases, we don't want
+			// to call the loaded plugin's ModuleInitialize, as the process isn't yet
+			// initialized.
+			bool are_we_within_early_launch = false;
+			ElIsProcessSuspended(are_we_within_early_launch);
+
+			// If we're within early launch, ModuleInitialize should not be called.
+			// Instead, it will be called in ArProcessAttach when the module initializes.
+			if (are_we_within_early_launch)
+			{
+				return AURIE_SUCCESS;
+			}
+
+			// Dispatch Module Initialize
+			last_status = Internal::MdpDispatchEntry(
+				Module,
+				Module->ModuleInitialize
+			);
+
+			// Remove module if Initialize failed
+			if (!AurieSuccess(last_status))
+			{
+				Internal::MdpMarkModuleForPurge(Module);
+				Internal::MdpPurgeMarkedModules();
+
+				return last_status;
+			}
+
+			Internal::MdpPurgeMarkedModules();
+
+			Module->Flags.IsInitialized = true;
+
+			// Module is now fully initialized
+		}
+		
+		return AURIE_SUCCESS;
+	}
+
+	bool MdIsImageRuntimeLoaded(
+		IN AurieModule* Module
+	)
+	{
+		return Module->Flags.IsRuntimeLoaded;
+	}
+
+	bool MdIsImageInitialized(
+		IN AurieModule* Module
+	)
+	{
+		return Module->Flags.IsInitialized;
+	}
+
+	AurieStatus MdMapFolder(
+		IN const fs::path& FolderPath, 
+		IN bool Recursive
+	)
+	{
+		if (!fs::exists(FolderPath))
+			return AURIE_FILE_NOT_FOUND;
+
+		Internal::MdpMapFolder(
+			FolderPath,
+			Recursive,
+			true,
+			nullptr
+		);
+
+		return AURIE_SUCCESS;
+	}
+
+	AurieStatus MdGetImageFilename(
+		IN AurieModule* Module, 
+		OUT std::wstring& Filename
+	)
+	{
+		auto& image_path = Internal::MdpGetImagePath(Module);
+
+		if (!image_path.has_filename())
+			return AURIE_INVALID_PARAMETER;
+
+		Filename = image_path.filename().wstring();
+
+		return AURIE_SUCCESS;
+	}
+
+	bool MdIsImagePreinitialized(
+		IN AurieModule* Module
+	)
+	{
+		return Module->Flags.IsPreloaded;
+	}
+
+	AurieStatus MdUnmapImage(
+		IN AurieModule* Module
+	)
+	{
+		if (Module == g_ArInitialImage)
+			return AURIE_ACCESS_DENIED;
+
+		return Internal::MdpUnmapImage(Module, true, true);
+	}
+}

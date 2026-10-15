@@ -1,0 +1,15 @@
+{
+  "apiVersion": "0.3.1",
+  "skillRowLength": 54,
+  "fields": [
+    { "enum": "Base", "id": "base", "label": "Raw stat base", "column": 4, "sourceKey": "DESC_VALUE_BASE", "resultSlots": true, "minimum": -1000000000, "unit": "skill-specific", "since": "0.3.0" },
+    { "enum": "PerRank", "id": "perRank", "label": "Stat increase per rank", "column": 5, "sourceKey": "DESC_VALUE_PER_LVL", "resultSlots": true, "minimum": -1000000000, "unit": "skill-specific", "since": "0.3.0" },
+    { "enum": "ExtraNumber", "id": "extraNumber", "label": "Extra numeric parameter", "column": 29, "sourceKey": "EXTRA_NBR", "resultSlots": false, "minimum": -1000000000, "unit": "skill-specific", "since": "0.3.0" },
+    { "enum": "ManaCost", "id": "manaCost", "label": "Resource cost", "column": 11, "sourceKey": "COST", "resultSlots": false, "minimum": 0, "unit": "raw resource cost", "since": "0.3.1" },
+    { "enum": "ManaCostPerRank", "id": "manaCostPerRank", "label": "Resource cost increase per rank", "column": 12, "sourceKey": "COST_LEVEL", "resultSlots": false, "minimum": -1000000000, "unit": "raw resource cost", "since": "0.3.1" },
+    { "enum": "Cooldown", "id": "cooldown", "label": "Ability cooldown", "column": 20, "sourceKey": "COOLDOWN", "resultSlots": false, "minimum": 0, "unit": "simulation ticks", "ticksPerSecond": 60, "since": "0.3.1" },
+    { "enum": "PrecastTime", "id": "precastTime", "label": "Precast time", "column": 22, "sourceKey": "PRECAST_TIME", "resultSlots": false, "minimum": 0, "unit": "simulation ticks", "ticksPerSecond": 60, "since": "0.3.1" },
+    { "enum": "CastTime", "id": "castTime", "label": "Cast time", "column": 24, "sourceKey": "CAST_TIME", "resultSlots": false, "minimum": 0, "unit": "simulation ticks", "ticksPerSecond": 60, "since": "0.3.1" },
+    { "enum": "Knockback", "id": "knockback", "label": "Ability knockback", "column": 26, "sourceKey": "KNOCKBACK", "resultSlots": false, "minimum": 0, "unit": "raw knockback", "since": "0.3.1" }
+  ]
+}

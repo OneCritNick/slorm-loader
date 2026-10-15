@@ -1,0 +1,16 @@
+{
+  "notices": [
+    {
+      "file": "spdlog-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/gabime/spdlog/v1.15.1/LICENSE",
+      "versionEvidence": "Aurie/source/include/spdlog/version.h defines 1.15.1",
+      "sha256": "4ccecab18d1ff0b61174fe3d6c430541625d3ddb865b0d5887db296f883c76e7"
+    },
+    {
+      "file": "SafetyHook-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/cursey/safetyhook/v0.6.5/LICENSE",
+      "versionEvidence": "Notice retrieved from official v0.6.5 tag. Aurie's embedded SafetyHook code version is not independently pinned; this does not identify it as v0.6.5.",
+      "sha256": "8d8291caf1cee26d23acf3eb67c9f9a2d58f1c681b16a4fbe8cbfb9e3c0b5a9b"
+    }
+  ]
+}

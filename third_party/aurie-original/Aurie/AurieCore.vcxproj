@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="source\framework\Debugging\debug.hpp" />
+    <ClInclude Include="source\framework\Early Launch\early_launch.hpp" />
+    <ClInclude Include="source\framework\shared.hpp" />
+    <ClInclude Include="source\framework\Memory Manager\memory.hpp" />
+    <ClInclude Include="source\framework\Module Manager\module.hpp" />
+    <ClInclude Include="source\framework\Object Manager\object.hpp" />
+    <ClInclude Include="source\framework\PE Parser\pe.hpp" />
+    <ClInclude Include="source\framework\framework.hpp" />
+    <ClInclude Include="source\include\SafetyHook\allocator.hpp" />
+    <ClInclude Include="source\include\SafetyHook\common.hpp" />
+    <ClInclude Include="source\include\SafetyHook\context.hpp" />
+    <ClInclude Include="source\include\SafetyHook\easy.hpp" />
+    <ClInclude Include="source\include\SafetyHook\inline_hook.hpp" />
+    <ClInclude Include="source\include\SafetyHook\mid_hook.hpp" />
+    <ClInclude Include="source\include\SafetyHook\os.hpp" />
+    <ClInclude Include="source\include\SafetyHook\rp_inline_hook.hpp" />
+    <ClInclude Include="source\include\SafetyHook\safetyhook.hpp" />
+    <ClInclude Include="source\include\SafetyHook\utility.hpp" />
+    <ClInclude Include="source\include\SafetyHook\vmt_hook.hpp" />
+    <ClInclude Include="source\include\spdlog\async.h" />
+    <ClInclude Include="source\include\spdlog\async_logger-inl.h" />
+    <ClInclude Include="source\include\spdlog\async_logger.h" />
+    <ClInclude Include="source\include\spdlog\cfg\argv.h" />
+    <ClInclude Include="source\include\spdlog\cfg\env.h" />
+    <ClInclude Include="source\include\spdlog\cfg\helpers-inl.h" />
+    <ClInclude Include="source\include\spdlog\cfg\helpers.h" />
+    <ClInclude Include="source\include\spdlog\common-inl.h" />
+    <ClInclude Include="source\include\spdlog\common.h" />
+    <ClInclude Include="source\include\spdlog\details\backtracer-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\backtracer.h" />
+    <ClInclude Include="source\include\spdlog\details\circular_q.h" />
+    <ClInclude Include="source\include\spdlog\details\console_globals.h" />
+    <ClInclude Include="source\include\spdlog\details\file_helper-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\file_helper.h" />
+    <ClInclude Include="source\include\spdlog\details\fmt_helper.h" />
+    <ClInclude Include="source\include\spdlog\details\log_msg-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\log_msg.h" />
+    <ClInclude Include="source\include\spdlog\details\log_msg_buffer-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\log_msg_buffer.h" />
+    <ClInclude Include="source\include\spdlog\details\mpmc_blocking_q.h" />
+    <ClInclude Include="source\include\spdlog\details\null_mutex.h" />
+    <ClInclude Include="source\include\spdlog\details\os-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\os.h" />
+    <ClInclude Include="source\include\spdlog\details\periodic_worker-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\periodic_worker.h" />
+    <ClInclude Include="source\include\spdlog\details\registry-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\registry.h" />
+    <ClInclude Include="source\include\spdlog\details\synchronous_factory.h" />
+    <ClInclude Include="source\include\spdlog\details\tcp_client-windows.h" />
+    <ClInclude Include="source\include\spdlog\details\tcp_client.h" />
+    <ClInclude Include="source\include\spdlog\details\thread_pool-inl.h" />
+    <ClInclude Include="source\include\spdlog\details\thread_pool.h" />
+    <ClInclude Include="source\include\spdlog\details\udp_client-windows.h" />
+    <ClInclude Include="source\include\spdlog\details\udp_client.h" />
+    <ClInclude Include="source\include\spdlog\details\windows_include.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bin_to_hex.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\args.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\base.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\chrono.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\color.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\compile.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\core.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\format-inl.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\format.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\os.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\ostream.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\printf.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\ranges.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\std.h" />
+    <ClInclude Include="source\include\spdlog\fmt\bundled\xchar.h" />
+    <ClInclude Include="source\include\spdlog\fmt\chrono.h" />
+    <ClInclude Include="source\include\spdlog\fmt\compile.h" />
+    <ClInclude Include="source\include\spdlog\fmt\fmt.h" />
+    <ClInclude Include="source\include\spdlog\fmt\ostr.h" />
+    <ClInclude Include="source\include\spdlog\fmt\ranges.h" />
+    <ClInclude Include="source\include\spdlog\fmt\std.h" />
+    <ClInclude Include="source\include\spdlog\fmt\xchar.h" />
+    <ClInclude Include="source\include\spdlog\formatter.h" />
+    <ClInclude Include="source\include\spdlog\fwd.h" />
+    <ClInclude Include="source\include\spdlog\logger-inl.h" />
+    <ClInclude Include="source\include\spdlog\logger.h" />
+    <ClInclude Include="source\include\spdlog\mdc.h" />
+    <ClInclude Include="source\include\spdlog\pattern_formatter-inl.h" />
+    <ClInclude Include="source\include\spdlog\pattern_formatter.h" />
+    <ClInclude Include="source\include\spdlog\sinks\android_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\ansicolor_sink-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\ansicolor_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\base_sink-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\base_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\basic_file_sink-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\basic_file_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\callback_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\daily_file_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\dist_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\dup_filter_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\hourly_file_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\kafka_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\mongo_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\msvc_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\null_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\ostream_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\qt_sinks.h" />
+    <ClInclude Include="source\include\spdlog\sinks\ringbuffer_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\rotating_file_sink-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\rotating_file_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\sink-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\stdout_color_sinks-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\stdout_color_sinks.h" />
+    <ClInclude Include="source\include\spdlog\sinks\stdout_sinks-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\stdout_sinks.h" />
+    <ClInclude Include="source\include\spdlog\sinks\syslog_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\systemd_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\tcp_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\udp_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\wincolor_sink-inl.h" />
+    <ClInclude Include="source\include\spdlog\sinks\wincolor_sink.h" />
+    <ClInclude Include="source\include\spdlog\sinks\win_eventlog_sink.h" />
+    <ClInclude Include="source\include\spdlog\spdlog-inl.h" />
+    <ClInclude Include="source\include\spdlog\spdlog.h" />
+    <ClInclude Include="source\include\spdlog\stopwatch.h" />
+    <ClInclude Include="source\include\spdlog\tweakme.h" />
+    <ClInclude Include="source\include\spdlog\version.h" />
+    <ClInclude Include="source\include\Zydis\Zydis.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\AurieMain.cpp" />
+    <ClCompile Include="source\framework\Debugging\debug.cpp" />
+    <ClCompile Include="source\framework\Early Launch\early_launch.cpp" />
+    <ClCompile Include="source\framework\Memory Manager\memory.cpp" />
+    <ClCompile Include="source\framework\Module Manager\module.cpp" />
+    <ClCompile Include="source\framework\Object Manager\object.cpp" />
+    <ClCompile Include="source\framework\PE Parser\pe.cpp" />
+    <ClCompile Include="source\include\SafetyHook\allocator.cpp" />
+    <ClCompile Include="source\include\SafetyHook\easy.cpp" />
+    <ClCompile Include="source\include\SafetyHook\inline_hook.cpp" />
+    <ClCompile Include="source\include\SafetyHook\mid_hook.cpp" />
+    <ClCompile Include="source\include\SafetyHook\os.linux.cpp" />
+    <ClCompile Include="source\include\SafetyHook\os.windows.cpp" />
+    <ClCompile Include="source\include\SafetyHook\rp_inline_hook.cpp" />
+    <ClCompile Include="source\include\SafetyHook\utility.cpp" />
+    <ClCompile Include="source\include\SafetyHook\vmt_hook.cpp" />
+    <ClCompile Include="source\include\Zydis\Zydis.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AurieCore.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source\include\SafetyHook\mid_hook.x86_32.asm" />
+    <None Include="source\include\SafetyHook\mid_hook.x86_64-linux.asm" />
+    <None Include="source\include\SafetyHook\mid_hook.x86_64-windows.asm" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{dbea28b6-4d6e-4a5a-be6c-b7bcf97a77cc}</ProjectGuid>
+    <RootNamespace>Aurie</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>AurieCore</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>AURIE_INCLUDE_PRIVATE;ZYDIS_STATIC_BUILD;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4201;</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>AURIE_INCLUDE_PRIVATE;ZYDIS_STATIC_BUILD;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4201;</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>AURIE_INCLUDE_PRIVATE;ZYDIS_STATIC_BUILD;_DEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4201;</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>AURIE_INCLUDE_PRIVATE;ZYDIS_STATIC_BUILD;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)source\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4201;</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

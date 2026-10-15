@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "scope": "Prepared local publication files; not an independent source-to-binary reproduction or GitHub attestation",
+  "runtimeVersion": "0.3.10",
+  "archiveFileName": "Slorm-Loader-0.3.10.zip",
+  "archiveSha256": "eb0103014b56eea55a7a6645c1e44e2e67d2bbbe45fcd825350d81cde95a995e",
+  "components": {
+    "mods/Native/AurieCore.dll": "23633112b342000b280bac425e50609610087ce532ba3fded8ef6f4af590142c",
+    "mods/Aurie/YYToolkit.dll": "ae7809f136f9222e5f49393d7ce7c3ad4c375c171308e2414660946d4ba0378a",
+    "mods/Aurie/SlormLoader.dll": "4882e6f75bfd40717c88dda44e9224a9ff2026530cddb83813f3ce9a3a46f796",
+    "tools/AuriePatcher.exe": "4d3aec439dbba5209ad48fb0a40d6324406247fe678541df9031f5b89363d536",
+    "SlormLoaderSetup.exe": "570d52e90bf3cfd5523179d0d99baf037e00d4f464431775d92d152fd7efef77",
+    "slorm-runtime.json": "501bfcd0b01b9b7fe3fb623b099c4b0481a58f24ec826bf78c332ce38f5ad7ba"
+  },
+  "source": {
+    "yyToolkitRelease": "v5.0.0c",
+    "consoleFixRevision": 2,
+    "aurieTag": "v2.0.2",
+    "yyToolkitBinaryReproductionVerified": false,
+    "yyToolkitSourceCommit": "d5cc0078bfbfd5907884ad3fe0b3c6cbaa1c3f54"
+  },
+  "toolchain": {
+    "windowsSdk": "10.0.22621.0",
+    "msvc": "14.40.33807"
+  }
+}

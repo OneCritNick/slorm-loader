@@ -1,0 +1,23 @@
+/build/
+/artifacts/
+/.vs/
+*.obj
+*.pdb
+*.ilk
+*.exe
+*.dll
+*.lib
+*.log
+*.zip
+*.rar
+**/bin/
+**/obj/
+/Game/
+/Save Backup/
+/logs/
+/node_modules/
+/tests/manual-parent-*/
+/tests/vortex-manifest-*/
+.env
+.env.*
+Thumbs.db

@@ -1,0 +1,19 @@
+{
+  "release": "v5.0.0c",
+  "version": "5.0.0",
+  "sourceCommit": "d5cc0078bfbfd5907884ad3fe0b3c6cbaa1c3f54",
+  "sourceArchive": "experimental-d5cc007.zip",
+  "releaseUrl": "https://github.com/AurieFramework/YYToolkit/releases/tag/v5.0.0c",
+  "sourceBinaryMatch": "not independently reproducible; pinned experimental SDK and official release binary",
+  "files": {
+    "LICENSE": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+    "YYToolkit.dll": "ae7809f136f9222e5f49393d7ce7c3ad4c375c171308e2414660946d4ba0378a",
+    "include/Aurie/shared.hpp": "074ed3413b6e3e0f5f654bb6b29aa2452a7f5f6817fbc47eabb506aabb5c72e4",
+    "include/FunctionWrapper/FunctionWrapper.hpp": "e72e263dcf3403efb196552fa08f2beea8f46f3ff67ae16c7de2b1599c0bccff",
+    "include/YYToolkit/YYTK_Shared_Base.hpp": "48560aae87d0730626e14c714130cc5db968e9c0d9873d98bfa52ce445da0e05",
+    "include/YYToolkit/YYTK_Shared_Interface.hpp": "06e73d85af6a3509bbbec0e141f030aec3a3f000aec9e77e881db0a636f95057",
+    "include/YYToolkit/YYTK_Shared_Types.cpp": "e00afd868e1fe3a7c9a395ed9b6c9d5b9530695f7505f8be22e6f8cc5d4ccfaa",
+    "include/YYToolkit/YYTK_Shared_Types.hpp": "e7ab04d9c3c647af71da8b73766be74ce4f8a915e9604d8eb37f94a3b99d308f",
+    "include/YYToolkit/YYTK_Shared.hpp": "6d6666f1db2553ea0c17658bdc53e65c396bc402053d73257038e66bd713d22a"
+  }
+}

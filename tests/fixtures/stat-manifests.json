@@ -1,0 +1,110 @@
+{
+  "tenacity": {
+    "schemaVersion": 1,
+    "id": "irremovable-100",
+    "name": "Irremovable - 100% Tenacity",
+    "version": "2.0.0",
+    "author": "nick",
+    "description": "Knight / Whirlwind: Irremovable grants 20 + 8% tenacity per rank, from 28% at rank 1 to 100% at rank 10.",
+    "type": "stat-patches",
+    "requires": [
+      {
+        "id": "slormancer-runtime",
+        "version": ">=0.3.0 <0.4.0"
+      }
+    ],
+    "conflicts": [],
+    "patches": [
+      {
+        "id": "tenacity-scaling",
+        "target": {
+          "classId": 0,
+          "skillRef": 112,
+          "stat": "tenacity",
+          "expectedBase": 20,
+          "expectedPerRank": 2
+        },
+        "field": "perRank",
+        "expected": 2,
+        "value": 8
+      }
+    ]
+  },
+  "armor": {
+    "schemaVersion": 1,
+    "id": "full-plate-armor",
+    "name": "Full Plate Armor - Reduced Movement Penalty",
+    "version": "1.0.0",
+    "author": "nick",
+    "description": "Knight / Deflect: Full Plate Armor reduces movement speed by 10% in combat instead of 35%. Its armor bonus is unchanged.",
+    "type": "stat-patches",
+    "requires": [
+      {
+        "id": "slormancer-runtime",
+        "version": ">=0.3.0 <0.4.0"
+      }
+    ],
+    "conflicts": [],
+    "patches": [
+      {
+        "id": "combat-movement-penalty",
+        "target": {
+          "classId": 0,
+          "skillRef": 205,
+          "stat": "res_phy_percent",
+          "expectedBase": 30,
+          "expectedPerRank": 7
+        },
+        "field": "extraNumber",
+        "expected": -35,
+        "value": -10
+      }
+    ]
+  },
+  "tuning": {
+    "schemaVersion": 1,
+    "id": "skill-tuning-example",
+    "name": "Skill Tuning Example",
+    "version": "1.0.0",
+    "author": "nick",
+    "description": "Whirlwind resource cost 54 to 27 and Banners of War health-bonus base 20 to 40. Other bonuses remain unchanged.",
+    "type": "stat-patches",
+    "requires": [
+      {
+        "id": "slormancer-runtime",
+        "version": ">=0.3.1 <0.4.0"
+      }
+    ],
+    "conflicts": [],
+    "patches": [
+      {
+        "id": "edit-1",
+        "target": {
+          "classId": 0,
+          "skillRef": 9,
+          "stat": "physical_damage",
+          "expectedBase": 30,
+          "expectedPerRank": 0,
+          "valueIndex": 0
+        },
+        "field": "manaCost",
+        "expected": 54,
+        "value": 27
+      },
+      {
+        "id": "edit-2",
+        "target": {
+          "classId": 0,
+          "skillRef": 0,
+          "stat": "max_health",
+          "expectedBase": 20,
+          "expectedPerRank": 20,
+          "valueIndex": 1
+        },
+        "field": "base",
+        "expected": 20,
+        "value": 40
+      }
+    ]
+  }
+}

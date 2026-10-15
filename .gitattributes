@@ -1,0 +1,3 @@
+# Preserve exact upstream SDK/source bytes used by the provenance hash checks.
+# Text remains viewable and diffable; do not rewrite line endings on checkout.
+* -text

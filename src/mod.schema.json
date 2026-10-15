@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:slormancer:mod-schema:1",
+  "title": "Slormancer mod manifest, schema version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "version",
+    "author",
+    "description",
+    "type",
+    "requires",
+    "conflicts",
+    "patches"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+    },
+    "version": {
+      "$ref": "#/$defs/version"
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "type": {
+      "enum": [
+        "stat-patches",
+        "runtime"
+      ]
+    },
+    "requires": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "version": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/id"
+      }
+    },
+    "patches": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/patch"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "stat-patches"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "id": {
+            "not": {
+              "enum": [
+                "slormancer-runtime",
+                "aurie",
+                "yytoolkit"
+              ]
+            }
+          },
+          "patches": {
+            "minItems": 1
+          },
+          "requires": {
+            "contains": {
+              "properties": {
+                "id": {
+                  "const": "slormancer-runtime"
+                }
+              },
+              "required": [
+                "id"
+              ]
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "id": {
+            "const": "slormancer-runtime"
+          },
+          "patches": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "not": {
+        "pattern": "^(con|prn|aux|nul|com[1-9]|lpt[1-9])$"
+      }
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})\\.(0|[1-9][0-9]{0,4})$"
+    },
+    "number": {
+      "type": "number",
+      "minimum": -1000000000,
+      "maximum": 1000000000
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "classId",
+        "skillRef",
+        "stat",
+        "expectedBase",
+        "expectedPerRank"
+      ],
+      "properties": {
+        "classId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "skillRef": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "stat": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "expectedBase": {
+          "$ref": "#/$defs/number"
+        },
+        "expectedPerRank": {
+          "$ref": "#/$defs/number"
+        },
+        "valueIndex": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15,
+          "default": 0
+        }
+      }
+    },
+    "patch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "field",
+        "expected",
+        "value"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "target": {
+          "$ref": "#/$defs/target"
+        },
+        "field": {
+          "enum": [
+            "base",
+            "perRank",
+            "extraNumber",
+            "manaCost",
+            "manaCostPerRank",
+            "cooldown",
+            "precastTime",
+            "castTime",
+            "knockback"
+          ]
+        },
+        "expected": {
+          "$ref": "#/$defs/number"
+        },
+        "value": {
+          "$ref": "#/$defs/number"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "manaCost"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "cooldown"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "precastTime"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "castTime"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "knockback"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "enum": [
+                  "extraNumber",
+                  "manaCost",
+                  "manaCostPerRank",
+                  "cooldown",
+                  "precastTime",
+                  "castTime",
+                  "knockback"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target": {
+                "properties": {
+                  "valueIndex": {
+                    "const": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
