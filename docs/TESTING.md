@@ -23,3 +23,5 @@ Version 0.4.2 is a fresh build and needs its own user game test. The successful 
 ## CI and independently built packages
 
 GitHub Actions runs the source build/tests on Windows 2022 and uploads a development ZIP with toolchain evidence. Public main-branch builds can generate attestations; private builds skip that job. CI artifact availability is not a live-game acceptance result or proof that an independently built binary equals a historical release.
+
+The proxy test runner owns its .NET process handles and drains stdout/stderr concurrently. This preserves exit codes under Windows PowerShell 5.1 as well as PowerShell 7; a missing or nonzero exit code still fails the check. This is build/test behavior only and does not alter the installed runtime.

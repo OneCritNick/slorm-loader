@@ -3,7 +3,7 @@
   "scope": "Runtime source, retained dependency modules and regression fixture snapshot; not a signed publisher manifest",
   "files": {
     "scripts/proxy-dependency.ps1": "97e8f1cb96db6cad17065106986f29f700da1f9b039ebe6d9b99d767ff4884c8",
-    "scripts/test-proxy.ps1": "8876ab23f9928ea99740cad3cceaa3d700b10946674b58e69f94df301822bc5b",
+    "scripts/test-proxy.ps1": "79289d243fdd3dfdf8136b06f1660ab98d8f823b1bf7aa443949dee0765c5bee",
     "src/SlormDiagnostics.hpp": "797de9edc67e52460cd8ee66262d9c8ed7f842b4093f119184e979c5ec0f6ce2",
     "src/SlormFieldSpecs.hpp": "694f1a1129b6c563de3b3cb7abf59e03c07de8a1bc855aca06e2c488d95ac5d6",
     "src/SlormLiveDiagnostics.hpp": "c54fb3103f50d074476507f7e4dde5a28df54f93f790ec749a5134a321c0943f",
@@ -392,7 +392,7 @@
     "THIRD_PARTY_NOTICES.md": "1ffe4a4edcb7b71930748c5f1f3f713ea35a9063e230dc878552b66f0b0e706c",
     "docs/RELEASE-NOTES.md": "b99f474d3faccd1f797e61e2e00d824d29525bc4f6f4bd906928197678d19ccf",
     "docs/BUILD.md": "1cbd2f76f72f2bd835455e0a19e760e3e2844e941ccfddedb114747138b93c6d",
-    "docs/TESTING.md": "c0f0182cd0a8299cbb0abb4d352fe5a5562408670d6513b16c80cbdc86df3ce5",
+    "docs/TESTING.md": "cc56eea3fa3a8d41c3fad7759edea1fe768f5ce76a6a0657e081206fbf60815a",
     "docs/INSTALL.md": "163342bcbc24ddd2776d32c095dccbe6eb72bf75967a58fa93353f5d9d5602a7",
     "docs/VERIFYING.md": "923ec9706ad386e8f490a2253e61bfdf783e2e348f2267a0ce0b8ab1b113e615",
     "docs/BOOTSTRAP.md": "c4d09a15fd90ab6e9984b3396e66bed1ca5d48edcb676706d8df39f81c0f75b4",
@@ -402,5 +402,5 @@
     "docs/proxy-lifecycle-test-results.json": "6c51474d68dea4ea89909ae2a78909fa10f64586931253d216dbe8e76f8f4bb9",
     "docs/stat-api-results.txt": "4b433c0490b0997dcfccdf05015cf678850c51ad7616f54a77b647f08d02234d"
   },
-  "snapshot": "runtime-0.4.2-release-cleanup"
+  "snapshot": "runtime-0.4.2-ci-exit-code-fix"
 }

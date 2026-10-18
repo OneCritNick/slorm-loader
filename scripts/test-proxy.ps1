@@ -23,13 +23,24 @@ try {
         Copy-Item -LiteralPath "$Root/src/version.ini" -Destination "$fixture/version.ini"
         if($case.mode -eq 'ual_running'){(Get-Content "$fixture/version.ini" -Raw).Replace('LoadPlugins=1','LoadPlugins=0')|Set-Content "$fixture/version.ini"}
         $before=(Get-FileHash "$fixture/VersionForwardingTest.exe").Hash
-        $process=Start-Process -FilePath "$fixture/VersionForwardingTest.exe" -ArgumentList $case.mode -WorkingDirectory "$stage/cwd" -WindowStyle Hidden -PassThru -RedirectStandardOutput "$fixture/stdout.txt" -RedirectStandardError "$fixture/stderr.txt"
-        if(-not $process.WaitForExit(20000)){$process.Kill();throw "Proxy fixture timed out: $($case.mode)"}
-        if($process.ExitCode -ne 0){throw "Proxy fixture failed or Windows blocked it: $($case.mode), exit $($process.ExitCode). Check Code Integrity events and $fixture/stderr.txt"}
+        # Windows PowerShell 5.1 can lose ExitCode when Start-Process redirects
+        # output. Own the process handle directly and drain both pipes in parallel.
+        $start=[Diagnostics.ProcessStartInfo]::new("$fixture/VersionForwardingTest.exe",$case.mode)
+        $start.UseShellExecute=$false;$start.WindowStyle=[Diagnostics.ProcessWindowStyle]::Hidden
+        $start.WorkingDirectory="$stage/cwd";$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
+        $process=[Diagnostics.Process]::Start($start)
+        try {
+            $stdout=$process.StandardOutput.ReadToEndAsync();$stderr=$process.StandardError.ReadToEndAsync()
+            if(-not $process.WaitForExit(20000)){$process.Kill();throw "Proxy fixture timed out: $($case.mode)"}
+            $exitCode=$process.ExitCode
+            [IO.File]::WriteAllText("$fixture/stdout.txt",$stdout.GetAwaiter().GetResult())
+            [IO.File]::WriteAllText("$fixture/stderr.txt",$stderr.GetAwaiter().GetResult())
+        } finally {$process.Dispose()}
+        if($null -eq $exitCode -or $exitCode -ne 0){throw "Proxy fixture failed or Windows blocked it: $($case.mode), exit $exitCode. Check Code Integrity events and $fixture/stderr.txt"}
         if((Get-FileHash "$fixture/VersionForwardingTest.exe").Hash -ne $before){throw 'Proxy modified the surrogate EXE'}
         if($case.mode -eq 'ual_native' -and -not(Test-Path "$fixture/native-proxy-result.txt")){throw 'Actual Core did not complete initialization'}
         if($case.mode -in @('ual_priority','ual_running') -and (Get-Content "$fixture/priority-phases.txt" -Raw).Replace("`r",'') -ne "entrypoint`npreinitialize`nnested-preinitialize`ninitialize`nnested-initialize`n"){throw 'Startup callback order regression'}
-        $results+=@{mode=$case.mode;exitCode=$process.ExitCode;exeUnchanged=$true;gameLaunched=$false}
+        $results+=@{mode=$case.mode;exitCode=$exitCode;exeUnchanged=$true;gameLaunched=$false}
         Write-Output "PASS proxy fixture $($case.mode): Windows API forwarding, startup and unchanged EXE"
     }
     $results|ConvertTo-Json -Depth 5|Set-Content "$Root/build/proxy-test-results.json"
