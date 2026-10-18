@@ -38,8 +38,11 @@ const changed = [...new Set([...before.keys(), ...after.keys()])]
   .filter(file => before.get(file) !== after.get(file)).sort();
 assert.deepEqual(changed, [
   'Aurie/AurieCore.rc',
+  'Aurie/source/AurieMain.cpp',
   'Aurie/source/framework/Debugging/debug.cpp',
   'Aurie/source/framework/Debugging/owned_console_sink.hpp',
+  'Aurie/source/framework/Module Manager/module.cpp',
+  'Aurie/source/framework/Module Manager/module.hpp',
   'Aurie/source/include/spdlog/sinks/wincolor_sink-inl.h'
 ]);
-console.log(`PASS ${Object.keys(inventory.files).length} source hashes, pinned SDK and exact four-file Aurie diff.`);
+console.log(`PASS ${Object.keys(inventory.files).length} source hashes, pinned SDK and exact seven-file Aurie console/bootstrap diff.`);

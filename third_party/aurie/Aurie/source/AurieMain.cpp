@@ -1,3 +1,4 @@
+// Modified by nick on 18 October 2026: proxy early-startup synchronization.
 // Include NTSTATUS values from this header, because it has all of them
 #include <ntstatus.h>
 
@@ -7,6 +8,15 @@
 #include <winternl.h>
 
 #include "framework/framework.hpp"
+
+// UAL calls InitializeASI outside DllMain. Hold its caller until early hooks
+// are installed, then let GameMaker create its runner interface and window.
+static HANDLE g_EarlyStartupReady = nullptr;
+extern "C" __declspec(dllexport) void InitializeASI()
+{
+	if (!g_EarlyStartupReady || WaitForSingleObject(g_EarlyStartupReady, 30000) != WAIT_OBJECT_0)
+		OutputDebugStringW(L"Slorm Loader: timed out waiting for Aurie early startup.\n");
+}
 
 // Unload routine, frees everything properly
 static void ArProcessDetach(HINSTANCE)
@@ -50,6 +60,7 @@ static void ArProcessDetach(HINSTANCE)
 
 	// Destroy the console
 	Internal::DbgpDestroyConsole();
+	if (g_EarlyStartupReady) CloseHandle(g_EarlyStartupReady);
 }
 
 // Called upon framework initialization (DLL_PROCESS_ATTACH) event.
@@ -323,10 +334,12 @@ static void ArProcessAttach(HINSTANCE Instance)
 
 	// Resume our process if needed
 	bool is_process_suspended = false;
-	if (!AurieSuccess(ElIsProcessSuspended(is_process_suspended)) || is_process_suspended)
+	if (AurieSuccess(ElIsProcessSuspended(is_process_suspended)) && is_process_suspended)
 	{
 		Internal::ElpResumeProcess(GetCurrentProcess());
 	}
+	DbgPrintEx(LOG_SEVERITY_TRACE, "[ArProcessAttach] Early startup ready; releasing ASI bootstrap.");
+	SetEvent(g_EarlyStartupReady);
 
 	// Now we have to wait until the current process has finished initializating...
 	
@@ -353,6 +366,7 @@ static void ArProcessAttach(HINSTANCE Instance)
 		nullptr
 	);
 
+	Internal::g_StartupPhase.store(false);
 	// Call ModuleEntry on all loaded plugins
 	for (auto& entry : Internal::g_LdrModuleList)
 	{
@@ -423,6 +437,9 @@ BOOL WINAPI DllMain(
 
 			// Try to locate LdrpCallInitRoutine, to fix stupid mods trying to call Aurie from CRT initializers.
 			Aurie::Internal::MdpSetupLdrpCallInitRoutinePointer();
+			g_EarlyStartupReady = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+			if (!g_EarlyStartupReady)
+				return FALSE;
 
 			HANDLE created_thread = CreateThread(
 				nullptr,
@@ -434,7 +451,11 @@ BOOL WINAPI DllMain(
 			);
 
 			if (!created_thread)
+			{
+				CloseHandle(g_EarlyStartupReady);
+				g_EarlyStartupReady = nullptr;
 				return FALSE;
+			}
 
 			CloseHandle(created_thread);
 			break;

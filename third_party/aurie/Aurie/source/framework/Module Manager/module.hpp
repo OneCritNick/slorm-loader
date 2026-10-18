@@ -1,9 +1,11 @@
+// Modified by nick on 18 October 2026: explicit proxy startup phase state.
 #ifndef AURIE_MODULE_H_
 #define AURIE_MODULE_H_
 
 #include "../framework.hpp"
 #include <vector>
 #include <functional>
+#include <atomic>
 
 namespace Aurie
 {
@@ -170,6 +172,7 @@ namespace Aurie
 		bool MdpSetupLdrpCallInitRoutinePointer();
 
 		inline PVOID g_LdrpCallInitRoutine = nullptr;
+		inline std::atomic<bool> g_StartupPhase = true;
 		inline std::list<AurieModule> g_LdrModuleList;
 	}
 }

@@ -321,7 +321,7 @@ EXPORTED AurieStatus ModuleInitialize(AurieModule* module, const fs::path&) {
         gameDirectory=fs::path(image).parent_path();
         statRuntime = std::make_unique<Slorm::StatRuntime>(api,gameDirectory,[](const std::string& message){Log("%s",message.c_str());});
         statRuntime->Discover();
-        Log("STAT_API_READY runtime=%s schemaVersion=1",Slorm::RuntimeVersion);
+        Log("STAT_API_READY runtime=%s statApi=%s schemaVersion=1",Slorm::RuntimePackageVersion,Slorm::RuntimeVersion);
     } catch (const std::exception& e) {Log("ERROR stat-mod discovery failed: %s",e.what()); statRuntime.reset(); return AURIE_MODULE_DEPENDENCY_NOT_RESOLVED;}
     auto status = api->CreateCallback(module, EVENT_OBJECT_CALL, reinterpret_cast<PVOID>(CodeCallback), -100);
     if (!AurieSuccess(status)) { Log("ERROR callback registration %s", AurieStatusToString(status)); return status; }

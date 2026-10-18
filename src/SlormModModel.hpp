@@ -14,6 +14,8 @@
 #include <vector>
 
 namespace Slorm {
+// Distribution/bootstrap updates do not change the supported JSON stat API.
+inline constexpr const char* RuntimePackageVersion = "0.4.2";
 inline constexpr const char* RuntimeVersion = "0.3.10";
 using Json = nlohmann::json;
 struct Version {

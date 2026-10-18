@@ -14,6 +14,8 @@ Visual Studio is detected with vswhere. Explicit paths are supported:
 
 The root command compiles five outputs: loader, setup, modified Core, original Core (test baseline only) and Patcher. It runs 130 native API checks, isolated Core startup/negative tests and setup transaction tests. It then creates the complete installable ZIP and validates the unpacked package using a benign PE fixture. No game files or saves are required or launched.
 
+The proxy suite also verifies ModuleEntrypoint, ModulePreinitialize and ModuleInitialize order, a dependency loaded during preinitialization, and the early-startup barrier. It exercises both UAL startup and a directly loaded Core with a running main thread. Core exports must preserve all upstream entries and add only InitializeASI.
+
 ## YYToolkit dependency
 
 The package uses the exact official x64 5.0.0c DLL pinned by `third_party/yytk-sdk/provenance.json`. Packaging downloads it from its fixed GitHub release URL and verifies SHA-256 before use; subsequent builds verify the cached copy. For an offline build, provide an existing matching DLL:
@@ -34,4 +36,4 @@ The ZIP includes a self-contained source tree with this same root build command.
 
 `docs/source-inventory.json` records the retained source snapshot. Intentional edits require reviewing/updating affected entries. `.gitattributes` preserves upstream SDK bytes. These repository-controlled hashes are audit aids, not publisher signatures.
 
-Before publishing a newly compiled runtime, repeat the relevant live-game loading, gameplay and purge/redeploy checks. The generated package is labelled a development source build until that acceptance is complete.
+Version 0.4.2 is a fresh source build with matching manifest and runtime-log versions. Before publishing newly compiled binaries, repeat the relevant live-game loading, gameplay and purge/redeploy checks. Generated build metadata describes the build-time test scope; successful tests of previous binaries are recorded separately in TESTING.md and RELEASE-NOTES.md.

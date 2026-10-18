@@ -119,6 +119,6 @@ inline Json ModStatusReport(Json jsonItems,const Json& nativeItems,unsigned long
     int jsonActive=0,jsonErrors=0,nativeActive=0,nativeErrors=0,pending=0;
     for(auto& item:jsonItems){item["source"]="json";jsonActive+=item.value("status","")=="applied";jsonErrors+=StatusError(item);pending+=item.value("status","")=="pending";}
     for(const auto& item:nativeItems){nativeActive+=item.value("status","")=="loaded";nativeErrors+=StatusError(item);pending+=item.value("status","")=="pending";jsonItems.push_back(item);}
-    return Json{{"schemaVersion",2},{"runtimeVersion",RuntimeVersion},{"sessionPid",pid},{"nativeScanComplete",nativeScanComplete},{"nativeScanState",nativeScanComplete?"complete":nativeStartupFinished?"incomplete":"pending"},{"mods",jsonItems},{"active",jsonActive+nativeActive},{"errors",jsonErrors+nativeErrors},{"pending",pending},{"jsonActive",jsonActive},{"nativeActive",nativeActive},{"jsonErrors",jsonErrors},{"nativeErrors",nativeErrors}};
+    return Json{{"schemaVersion",2},{"runtimeVersion",RuntimePackageVersion},{"statApiVersion",RuntimeVersion},{"sessionPid",pid},{"nativeScanComplete",nativeScanComplete},{"nativeScanState",nativeScanComplete?"complete":nativeStartupFinished?"incomplete":"pending"},{"mods",jsonItems},{"active",jsonActive+nativeActive},{"errors",jsonErrors+nativeErrors},{"pending",pending},{"jsonActive",jsonActive},{"nativeActive",nativeActive},{"jsonErrors",jsonErrors},{"nativeErrors",nativeErrors}};
 }
 }

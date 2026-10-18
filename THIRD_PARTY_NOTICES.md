@@ -10,6 +10,7 @@
 | spdlog 1.15.1 and fmt | MIT, notices in Aurie's vendored headers and `licenses/` |
 | SafetyHook, embedded upstream revision not independently identified | Boost Software License 1.0, `licenses/SafetyHook-LICENSE.txt` |
 | Zydis/Zycore | MIT, original amalgamated source notices and `licenses/Zydis-Zycore-notices.txt` |
+| Ultimate ASI Loader 9.0.0 | [Tagged upstream release](https://github.com/ThirteenAG/Ultimate-ASI-Loader/tree/v9.0.0), MIT; `third_party/ual/LICENSE.txt` and pinned hashes in `third_party/ual/provenance.json`. Distributed unchanged as version.dll. |
 
 The standalone SafetyHook notice was retrieved from upstream tag v0.6.5; that identifies the notice source, not the embedded code version. `licenses/notice-provenance.json` records notice URLs and hashes. Complete vendored source retains additional original notices.
 
@@ -21,5 +22,7 @@ The Aurie console fix by nick, dated 14 October 2026, changes four files relativ
 - `Aurie/AurieCore.rc`
 
 The logger owns a separate `CONOUT$` handle, synchronizes its release with writes and closes it before detachment. The version resource identifies revision 2. The build embeds a Common Controls 6 activation manifest and regression tests actual DLL startup. Dated modification notices are present in the changed files.
+
+The proxy startup fix by nick, dated 18 October 2026, changes three additional files: `Aurie/source/AurieMain.cpp`, `Aurie/source/framework/Module Manager/module.cpp` and `module.hpp`. It adds the optional `InitializeASI` entrypoint, waits for early startup outside DllMain, and uses explicit startup phases instead of process suspension to order module callbacks. All upstream Core exports are retained. The original dependency tree is kept separately for comparison.
 
 The Slormancer game belongs to its respective owners. This runtime repository/package includes no game executable, game data, saves, promotional artwork or community mod binaries.

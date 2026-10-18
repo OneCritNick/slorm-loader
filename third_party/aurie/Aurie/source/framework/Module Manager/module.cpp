@@ -1,3 +1,4 @@
+// Modified by nick on 18 October 2026: explicit proxy startup phases.
 #include "module.hpp"
 #include <Psapi.h>
 #include <Zydis/Zydis.h>
@@ -570,22 +571,20 @@ namespace Aurie
 	{
 		AurieStatus last_status = AURIE_SUCCESS;
 
-		// Determine if we're doing a runtime load.
-		// Runtime loads are done when the process is no longer suspended.
-		bool is_process_suspended = false;
-		last_status = ElIsProcessSuspended(is_process_suspended);
-		
-		if (!AurieSuccess(last_status))
-			return last_status;
+		// Both callers are ArProcessAttach startup passes. A proxy bootstrap
+		// does not suspend the process: thread state cannot determine the phase.
 
 		// Loop over all the modules
 		for (auto path : ModuleList)
 		{
 			// Map the image.
 			AurieModule* module = nullptr;
+			// A module with both early exports appears in both startup passes.
+			if (AurieSuccess(MdpLookupModuleByPath(path, module)))
+				continue;
 			last_status = MdMapImageEx(
 				path,
-				!is_process_suspended,
+				false,
 				module
 			);
 
@@ -863,7 +862,7 @@ namespace Aurie
 
 			// If we're within early launch, ModuleInitialize should not be called.
 			// Instead, it will be called in ArProcessAttach when the module initializes.
-			if (are_we_within_early_launch)
+			if (Internal::g_StartupPhase.load() || are_we_within_early_launch)
 			{
 				return AURIE_SUCCESS;
 			}

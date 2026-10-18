@@ -14,16 +14,19 @@ try{
     try{& "$output\stat-api-tests.exe"|Tee-Object -FilePath "$output\stat-api-results.txt";if($LASTEXITCODE -ne 0){throw 'Native stat tests failed.'}}finally{Pop-Location}
     foreach($name in @('AurieCore.dll','AurieCore-original.dll','AuriePatcher.exe','SlormLoaderSetup.exe')){if(-not(Test-Path -LiteralPath "$output\$name")){throw 'Run scripts/build.ps1 before the complete offline test suite.'}}
     & "$PSScriptRoot\test-core.ps1" -Toolchain $tc -Root $root
-    # Benign own x64 PE is only patched/restored; never run as a game.
+    & "$PSScriptRoot\test-proxy.ps1" -Toolchain $tc -Root $root
+    # Benign own x64 PE stays byte-identical; never run as a game.
     $bootstrap=Join-Path $stage 'bootstrap';$fixture=Join-Path $bootstrap 'source';$package=Join-Path $bootstrap 'package'
-    New-Item -ItemType Directory -Path $fixture,"$package\mods\Native","$package\tools"|Out-Null
+    New-Item -ItemType Directory -Path $fixture,"$package\plugins"|Out-Null
     [IO.File]::WriteAllText("$fixture\fixture.cpp",'#include <windows.h>'+"`n"+'int WINAPI wWinMain(HINSTANCE,HINSTANCE,PWSTR,int){return 0;}')
     Invoke-SlormChecked $tc.cl @('/nologo','/EHsc','/std:c++20','/MD','/O2',"/Fe:$fixture\The Slormancer.exe","/Fo:$fixture\fixture.obj","$fixture\fixture.cpp",'/link','/SUBSYSTEM:WINDOWS','user32.lib')
     Copy-Item -LiteralPath "$output\SlormLoaderSetup.exe" -Destination "$package\SlormLoaderSetup.exe"
-    Copy-Item -LiteralPath "$output\AurieCore.dll" -Destination "$package\mods\Native\AurieCore.dll"
-    Copy-Item -LiteralPath "$output\AuriePatcher.exe" -Destination "$package\tools\AuriePatcher.exe"
-    $pins=[ordered]@{};foreach($name in @('mods\Native\AurieCore.dll','tools\AuriePatcher.exe')){$pins[$name]=(Get-FileHash -LiteralPath "$package\$name").Hash.ToLowerInvariant()}
+    Copy-Item -LiteralPath "$output\AurieCore.dll" -Destination "$package\plugins\AurieCore.asi"
+    . "$PSScriptRoot/proxy-dependency.ps1";Copy-Item -LiteralPath (Get-SlormProxy $root) -Destination "$package\version.dll"
+    Copy-Item -LiteralPath "$root\src\version.ini" -Destination "$package\version.ini"
+    Copy-Item -LiteralPath "$root\src\slorm-runtime.json" -Destination "$package\slorm-runtime.json"
+    $pins=[ordered]@{};foreach($name in @('plugins\AurieCore.asi','version.dll','version.ini','slorm-runtime.json')){$pins[$name]=(Get-FileHash -LiteralPath "$package\$name").Hash.ToLowerInvariant()}
     $pins|ConvertTo-Json|Set-Content -LiteralPath "$package\slorm-loader-checksums.json" -Encoding utf8
     Invoke-SlormChecked "$package\SlormLoaderSetup.exe" @('self-test',$fixture,"$bootstrap\transaction",'--quiet')
-    Write-Output 'PASS complete offline tests. Fixture EXE was patched/restored, never launched; no game assets, installed game or saves used.'
+    Write-Output 'PASS complete offline tests. Proxy setup left the fixture EXE unchanged; no game assets, installed game or saves used.'
 }finally{Pop-Location}

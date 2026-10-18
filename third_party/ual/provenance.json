@@ -1,0 +1,9 @@
+{
+  "version": "9.0.0",
+  "url": "https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases/download/v9.0.0/Ultimate-ASI-Loader_x64.zip",
+  "archiveSha256": "f428cddb0a6859dd03e621e01706ba05a17818307c8a8ead2ff02372a7747a2f",
+  "dllSha256": "2da9374dbe7089706ec86fe008e406bc9f562e105f7a07d5478542e738a45662",
+  "license": "MIT",
+  "source": "https://github.com/ThirteenAG/Ultimate-ASI-Loader/tree/v9.0.0",
+  "signatureTrustClaim": "None. Windows application-control acceptance was observed locally, not guaranteed."
+}

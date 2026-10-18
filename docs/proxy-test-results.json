@@ -1,0 +1,32 @@
+[
+  {
+    "mode": "ual",
+    "gameLaunched": false,
+    "exitCode": 0,
+    "exeUnchanged": true
+  },
+  {
+    "mode": "ual_native",
+    "gameLaunched": false,
+    "exitCode": 0,
+    "exeUnchanged": true
+  },
+  {
+    "mode": "ual_priority",
+    "gameLaunched": false,
+    "exitCode": 0,
+    "exeUnchanged": true
+  },
+  {
+    "mode": "ual_running",
+    "gameLaunched": false,
+    "exitCode": 0,
+    "exeUnchanged": true
+  },
+  {
+    "mode": "ual_missing",
+    "gameLaunched": false,
+    "exitCode": 0,
+    "exeUnchanged": true
+  }
+]

@@ -37,7 +37,7 @@ try {
     Build-Core (Join-Path $root 'third_party\aurie') 'AurieCore'
     Build-Core (Join-Path $root 'third_party\aurie-original') 'AurieCore-original'
     $original=Get-SlormExports $tc "$stage\AurieCore-original.dll";$modified=Get-SlormExports $tc "$stage\AurieCore.dll"
-    if(-not $original.Count -or (Compare-Object $original $modified)){throw 'Modified Core exports differ from source-built original Core.'}
+    if(-not $original.Count -or (Compare-Object ($original+@('InitializeASI')|Sort-Object) $modified)){throw 'Core exports must retain every upstream export and add only InitializeASI.'}
     $patcher=Join-Path $root 'third_party\aurie-original\AuriePatcher'
     Invoke-SlormChecked $tc.rc @('/nologo','/c65001',"/fo$stage\AuriePatcher.res","/I$patcher","$patcher\AuriePatcher.rc")
     Invoke-SlormChecked $tc.cl @('/nologo','/EHsc','/std:c++20','/MT','/O2','/utf-8','/DNDEBUG','/DUNICODE','/D_UNICODE',"/I$patcher\include","/Fe:$stage\AuriePatcher.exe","$patcher\source\main.cpp","$patcher\include\PE\pe_parser.cpp","$stage\AuriePatcher.res",'/link','/SUBSYSTEM:CONSOLE','/MANIFEST:EMBED','ntdll.lib','comctl32.lib','comdlg32.lib','user32.lib')
@@ -54,6 +54,6 @@ try {
         }finally{Pop-Location}
     }
     $hashes=[ordered]@{};foreach($name in $products){Copy-Item -LiteralPath "$stage\$name" -Destination "$output\$name" -Force;$hashes[$name]=(Get-FileHash -LiteralPath "$output\$name" -Algorithm SHA256).Hash.ToLowerInvariant()}
-    [ordered]@{schemaVersion=1;builtAtUtc=[DateTime]::UtcNow.ToString('o');toolset=$tc.toolset;compilerVersion=$tc.compilerVersion;windowsSdk=$tc.sdkVersion;sdkSourceCommit=$pin.sourceCommit;coreExportsMatchSourceOriginal=$true;embeddedCommonControls6=$true;hashes=$hashes;scope='Independent source build; not claimed byte-identical to historical release or live-game-tested';yyToolkitSourceCandidate=[bool]$BuildYYToolkit}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath "$output\build-provenance.json" -Encoding utf8
+    [ordered]@{schemaVersion=1;builtAtUtc=[DateTime]::UtcNow.ToString('o');toolset=$tc.toolset;compilerVersion=$tc.compilerVersion;windowsSdk=$tc.sdkVersion;sdkSourceCommit=$pin.sourceCommit;corePreservesUpstreamExports=$true;coreAdditionalExports=@('InitializeASI');embeddedCommonControls6=$true;hashes=$hashes;scope='Independent source build; not claimed byte-identical to historical release or live-game-tested';yyToolkitSourceCandidate=[bool]$BuildYYToolkit}|ConvertTo-Json -Depth 5|Set-Content -LiteralPath "$output\build-provenance.json" -Encoding utf8
     Write-Output "Built $($products.Count) source outputs in $output with MSVC$($tc.toolset), compiler$($tc.compilerVersion), SDK$($tc.sdkVersion). Run scripts/test.ps1 before using outputs."
 }finally{Pop-Location}

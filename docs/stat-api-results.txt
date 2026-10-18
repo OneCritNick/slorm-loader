@@ -1,0 +1,131 @@
+PASS current-session Aurie completion marker confirms native startup
+PASS old Aurie log cannot finalize native status
+PASS completion text without current Aurie startup header is not proof
+PASS partial final completion line remains pending
+PASS native initialization failure retains exact current-log status
+PASS duplicate DLL basenames never inherit ambiguous log errors
+PASS one DLL cannot inherit another DLL's failure
+PASS successful and already-mapped log events are not failures
+PASS native loaded status requires confirmed Aurie initialization
+PASS registered but uninitialized DLL is not counted as loaded
+PASS proxy DLL missing Aurie exports has a readable signature rejection
+PASS wrong architecture is reported distinctly
+PASS unreadable DLL is reported as an inspection failure
+PASS preinitialize-only Aurie modules pass export compatibility inspection
+PASS absent compatible DLL does not invent an initialization failure reason
+PASS known original failure is attributed to its log evidence
+PASS uppercase manual DLL extension explains Aurie's discovery limitation
+PASS framework DLLs are excluded case-insensitively from gameplay status
+PASS pending native scan enumerates candidates without touching Aurie's module list
+PASS post-startup scan observes each candidate and detects duplicate basenames
+PASS nested DLLs retain distinct path-based identities
+PASS one DLL inspection failure preserves other native candidates
+PASS multiple DLL paths sharing an Aurie module are counted once per module identity
+PASS hardlink aliases of pinned framework DLLs are excluded before lookup
+PASS registered framework identity cannot be counted under a gameplay alias filename
+PASS unified totals count JSON and native success failures and pending separately
+PASS unified report includes both sources and exact count breakdowns
+PASS pending startup and incomplete filesystem scan remain distinct
+PASS empty successful native scan reports zero mods without errors
+PASS native root scan failures are visible instead of silently becoming zero errors
+PASS actual current-process log can be read with shared access
+PASS actual stale log timestamp prevents current native status confirmation
+PASS truncated current Aurie log is confirmed while its writer stays open
+PASS empty removed-mod directory is inactive
+PASS Vortex marker alone is inactive
+PASS deployed manifest beside Vortex marker remains discoverable
+PASS Vortex single-mod undeployment leaves no mod candidate
+PASS malformed manifest still reaches normal validation
+PASS payload without manifest remains an error candidate
+PASS directory impersonating Vortex marker is not ignored
+PASS both real mod manifests accepted
+PASS runtime metadata matches distribution version while JSON API remains compatible
+PASS version range boundaries
+PASS ambiguous leading-zero versions rejected
+PASS unsupported version range syntax rejected
+PASS duplicate JSON keys rejected
+PASS oversized manifest rejected
+PASS unknown schema version rejected
+PASS path-like mod ID rejected
+PASS Windows device name rejected
+PASS runtime requirement is mandatory
+PASS unknown metadata fields rejected
+PASS patch values must be JSON numbers
+PASS duplicate patch IDs rejected
+PASS independent mods resolve deterministically
+PASS v5 framework dependency resolves against the bundled toolkit
+PASS v4-only framework dependency is blocked on the v5 runtime
+PASS all three existing JSON packages retain compatible runtime ranges
+PASS dependency applies before dependent
+PASS missing dependency blocks only affected mod
+PASS incompatible runtime version blocked
+PASS dependency cycle never applies
+PASS explicit conflicts block both sides
+PASS overlapping skill patches block both but preserve unrelated mod
+PASS duplicate deployed IDs rejected
+PASS shared helper applies both real mods
+PASS Full Plate Armor resistance bonus unchanged
+PASS later character-specific row receives same patch
+PASS repeated hero checks do not rewrite values
+PASS original fields restored across class and hero copies
+PASS changed game schema rejected
+PASS schema rejection leaves original runtime untouched
+PASS second invalid patch rejects entire mod
+PASS preflight prevents partial application
+PASS injected failure during second write reported
+PASS write failure rolls back all committed fields
+PASS restoration preserves a later external change
+PASS mixed-class mod patches matching class and selected hero only
+PASS post-commit logging failure restores committed fields
+PASS dependent cannot apply after dependency reporting failure
+PASS transient stale hero table defers without wrong-class write
+PASS correct table arriving during class switch receives patch
+PASS persistent hero mismatch restores class and hero patches
+PASS hero failure rolls back transitive dependents
+PASS unrelated mod survives dependency rollback
+PASS missing cache entry does not suppress later invalidation
+PASS nine registered fields include verified cooldown and cost offsets
+PASS editing one packed value preserves other token text
+PASS packed string cannot masquerade as scalar numeric field
+PASS numeric suffixes rejected
+PASS mixed numeric signs rejected
+PASS repeated numeric signs rejected
+PASS absent result slot rejected
+PASS nonfinite packed values rejected
+PASS multiple patches in same packed column do not clobber each other
+PASS packed components restore in reverse order
+PASS restoring one packed component preserves external edits to another
+PASS result index bound enforced by manifest
+PASS missing second packed slot rejects entire mod
+PASS packed preflight failure writes no components
+PASS cache invalidation targets both edited result indices
+PASS second packed write failure reported
+PASS packed rollback restores exact original token formatting
+PASS direct cost cooldown and knockback parameters apply
+PASS cast timing changes leave displayed damage intact
+PASS raw parameters restore original values
+PASS negative cooldown replacement rejected
+PASS direct fields cannot select a displayed result slot
+PASS opt-in diagnostic configuration accepted
+PASS disabled diagnostic file cannot enable probes
+PASS unknown diagnostic option rejected
+PASS duplicate probe ranks rejected
+PASS fractional probe ranks rejected
+PASS probe ranks bounded
+PASS probe switch must be Boolean
+PASS factual readback matching rejects wrong and nonfinite values
+PASS probe prediction uses modified per-rank field
+PASS probe prediction excludes sibling result component
+PASS natural result observer accepts patched hero and component
+PASS natural result observer excludes another class with same reference
+PASS natural result observer excludes another result component
+PASS failed mods cannot label unrelated calls as patch observations
+PASS stat scaling patch does not claim a cost observation
+PASS transient character-table wait suppresses natural patch observations
+PASS cost patches select natural cost observations
+PASS known Irremovable schema permits explicit probe
+PASS arbitrary skills cannot trigger unverified explicit probes
+PASS readback verifies modified field and complete target guards
+PASS same value in wrong skill row cannot pass factual readback
+PASS unmodified original field cannot pass factual readback
+RESULT: 130 checks passed

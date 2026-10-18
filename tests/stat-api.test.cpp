@@ -152,7 +152,7 @@ int main(int argc,char** argv) {
         auto irremovable=ParseManifest(fixtures.at("tenacity"));
         auto plate=ParseManifest(fixtures.at("armor"));
         Check(irremovable.patches[0].value==8&&plate.patches[0].value==-10,"both real mod manifests accepted");
-        Check(ParseManifest(Read(root/"src/slorm-runtime.json"),true).version==RuntimeVersion,"runtime metadata version matches native API");
+        Check(ParseManifest(Read(root/"src/slorm-runtime.json"),true).version==RuntimePackageVersion,"runtime metadata matches distribution version while JSON API remains compatible");
         Check(Satisfies("0.3.0",">=0.3.0 <0.4.0")&&!Satisfies("0.4.0",">=0.3.0 <0.4.0"),"version range boundaries");
         Reject([]{ParseVersion("01.2.3");},"ambiguous leading-zero versions rejected");
         Reject([]{Satisfies("1.2.3","^1.0.0");},"unsupported version range syntax rejected");

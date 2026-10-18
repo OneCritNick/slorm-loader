@@ -1,5 +1,7 @@
 # JSON skill mods
 
+Runtime 0.4.x retains JSON stat API compatibility version 0.3.10 for existing `slormancer-runtime` dependency ranges. Bootstrap package versions and stat API compatibility versions are tracked separately: status reports the package in `runtimeVersion` and the JSON API in `statApiVersion`.
+
 Each stat mod is a `mod.json` using `schemaVersion: 1`. The editor schema is `src/mod.schema.json`; regression inputs are under `tests/fixtures/stat-manifests.json`. Gameplay mod packages and authoring tools are maintained separately from this runtime. Vortex deploys a manifest to `mods/Slormancer/<id>/mod.json`; manually installed manifests may use the same layout. Close the game before changing deployments.
 
 Irremovable changes Knight Whirlwind's tenacity scaling from base 20 + 2 per rank to base 20 + 8 per rank: 28% at rank 1 and 100% at rank 10. Full Plate Armor changes the in-combat movement penalty from -35% to -10%, retaining its armor scaling.

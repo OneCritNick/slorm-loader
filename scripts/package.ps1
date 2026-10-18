@@ -5,7 +5,7 @@ $build=Join-Path $root 'build'
 $meta=Get-Content -LiteralPath "$root\src\slorm-runtime.json" -Raw|ConvertFrom-Json
 if($meta.version -notmatch '^\d+\.\d+\.\d+$'){throw 'Invalid runtime package version'}
 $provenance=Get-Content -LiteralPath "$build\build-provenance.json" -Raw|ConvertFrom-Json
-foreach($name in @('SlormLoader.dll','SlormLoaderSetup.exe','AurieCore.dll','AuriePatcher.exe')){
+foreach($name in @('SlormLoader.dll','SlormLoaderSetup.exe','AurieCore.dll')){
     $pin=$provenance.hashes.$name
     if(-not $pin -or (Get-FileHash -LiteralPath "$build\$name").Hash.ToLowerInvariant() -ne $pin){throw "Build output missing or changed: $name. Run build.ps1 first."}
 }
@@ -24,16 +24,24 @@ if(-not $YYToolkitPath){
     }
 }
 if((Get-FileHash -LiteralPath $YYToolkitPath).Hash.ToLowerInvariant() -ne $expected){throw 'YYToolkit must match the pinned official 5.0.0c release. Source candidates are not accepted for packaging.'}
+. "$PSScriptRoot/proxy-dependency.ps1"
+$proxy=Get-SlormProxy $root
 $packages=Join-Path $build 'packages';New-Item -ItemType Directory -Path $packages -Force|Out-Null
 $stage=Join-Path $packages ([Guid]::NewGuid().ToString('N'));$payload=Join-Path $stage 'runtime'
-New-Item -ItemType Directory -Path "$payload\mods\Native","$payload\mods\Aurie","$payload\mods\Slormancer","$payload\tools","$payload\docs","$payload\source"|Out-Null
+New-Item -ItemType Directory -Path "$payload\plugins","$payload\mods\Aurie","$payload\mods\Slormancer","$payload\docs","$payload\source"|Out-Null
 Copy-Item -LiteralPath "$build\SlormLoader.dll" -Destination "$payload\mods\Aurie\SlormLoader.dll"
-Copy-Item -LiteralPath "$build\AurieCore.dll" -Destination "$payload\mods\Native\AurieCore.dll"
-Copy-Item -LiteralPath "$build\AuriePatcher.exe" -Destination "$payload\tools\AuriePatcher.exe"
+Copy-Item -LiteralPath "$build\AurieCore.dll" -Destination "$payload\plugins\AurieCore.asi"
+Copy-Item -LiteralPath $proxy -Destination "$payload\version.dll"
+Copy-Item -LiteralPath "$root\src\version.ini" -Destination "$payload\version.ini"
+Copy-Item -LiteralPath "$root\third_party\ual\LICENSE.txt" -Destination "$payload\docs\LICENSE-Ultimate-ASI-Loader.txt"
 Copy-Item -LiteralPath "$build\SlormLoaderSetup.exe" -Destination "$payload\SlormLoaderSetup.exe"
 Copy-Item -LiteralPath $YYToolkitPath -Destination "$payload\mods\Aurie\YYToolkit.dll"
 Copy-Item -LiteralPath "$root\src\slorm-runtime.json" -Destination "$payload\slorm-runtime.json"
 Copy-Item -LiteralPath "$root\docs\INSTALL.md" -Destination "$payload\docs\README.md"
+Copy-Item -LiteralPath "$root\docs\RELEASE-NOTES.md" -Destination "$payload\docs\RELEASE-NOTES.md"
+foreach($name in @('BOOTSTRAP.md','PROXY-STARTUP-0.4.1.md')){Copy-Item -LiteralPath "$root\docs\$name" -Destination "$payload\docs\$name"}
+$security=(Get-Content -LiteralPath "$root\SECURITY.md" -Raw).Replace('(docs/INSTALL.md)','(README.md)').Replace('(docs/BOOTSTRAP.md)','(BOOTSTRAP.md)')
+[IO.File]::WriteAllText("$payload\docs\SECURITY.md",$security)
 Copy-Item -LiteralPath "$root\LICENSE" -Destination "$payload\docs\LICENSE-AGPL.txt"
 Copy-Item -LiteralPath "$root\licenses\PROJECT-MIT.txt" -Destination "$payload\docs\LICENSE-setup-MIT.txt"
 Copy-Item -LiteralPath "$root\src\vendor\nlohmann\LICENSE.MIT" -Destination "$payload\docs\LICENSE-json-MIT.txt"
@@ -58,7 +66,7 @@ Get-ChildItem -LiteralPath "$payload\source" -File -Recurse|Sort-Object FullName
 }
 $sourceHashes|ConvertTo-Json -Depth 4|Set-Content -LiteralPath "$payload\docs\source-checksums.json" -Encoding utf8
 $pins=[ordered]@{}
-foreach($name in @('mods\Native\AurieCore.dll','mods\Aurie\YYToolkit.dll','mods\Aurie\SlormLoader.dll','tools\AuriePatcher.exe','slorm-runtime.json')){$pins[$name]=(Get-FileHash -LiteralPath "$payload\$name").Hash.ToLowerInvariant()}
+foreach($name in @('version.dll','version.ini','plugins\AurieCore.asi','mods\Aurie\YYToolkit.dll','mods\Aurie\SlormLoader.dll','slorm-runtime.json')){$pins[$name]=(Get-FileHash -LiteralPath "$payload\$name").Hash.ToLowerInvariant()}
 $pins|ConvertTo-Json|Set-Content -LiteralPath "$payload\slorm-loader-checksums.json" -Encoding utf8
 [ordered]@{schemaVersion=1;runtimeVersion=$meta.version;kind='development-source-build';builtAtUtc=[DateTime]::UtcNow.ToString('o');toolchain=$provenance;yyToolkit=@{release='v5.0.0c';url=$url;sha256=$expected;origin='Pinned official release binary; not the optional source candidate'};sourceFileCount=$sourceHashes.Count;liveGameTested=$false}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath "$payload\docs\build-info.json" -Encoding utf8
 $archive=Join-Path $stage ("Slorm-Loader-"+$meta.version+'.zip')
