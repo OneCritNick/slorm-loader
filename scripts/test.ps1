@@ -10,6 +10,7 @@ try{
     & "$output\loader-status-tests.exe" | Tee-Object -FilePath "$output\loader-status-results.txt"
     if($LASTEXITCODE -ne 0){throw 'Loader status tests failed.'}
     Invoke-SlormChecked 'node' @("$root\tests\loader-boundary.test.cjs")
+    Invoke-SlormChecked 'node' @("$root\tests\source-verification.test.cjs")
     Invoke-SlormChecked $PythonPath @("$root/tests/loader-load.test.py","$root/build/SlormLoader.dll")
     foreach($name in @('AurieCore.dll','AurieCore-original.dll')){if(-not(Test-Path -LiteralPath "$output\$name")){throw 'Run scripts/build.ps1 before the complete offline test suite.'}}
     if($FrameworkArchive){

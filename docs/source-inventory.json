@@ -1,20 +1,9 @@
 {
   "schemaVersion": 1,
-  "scope": "Loader 0.6.1 complete source and lean player packaging; not a publisher signature",
+  "scope": "Loader code, build/test scripts and dependency pins; documentation remains editable. Packaged source-checksums.json covers all shipped files.",
   "files": {
     ".github/workflows/build.yml": "5fb071786e985f2fa9c73323a8c473e36f07036df9b98b3530dc774b8e71ae03",
-    "README.md": "ccdcf6e689a1585bbbc9942eddb8c7102723948f2779d940a7a61c723d53ecdd",
-    "SECURITY.md": "81e2941d277edce35f9fab085585a24c935f1d3c999ae3261f63f81a23278c60",
-    "THIRD_PARTY_NOTICES.md": "15420dc557133cd95034f80c4c28dff79383171e223b695d5fb05353916d11c3",
     "build.ps1": "143764306a31ddedd8c0e762a9fd16308ae3f01d266d3dee19f555eec15493dd",
-    "docs/BOOTSTRAP.md": "a885eca0cfc611f02dd85ca8443697131248dcb3e0e3822c1b9d24c16c8e50d0",
-    "docs/BUILD.md": "f73455197a61fadaf077d8ad2a654a2a6e7c7eda103eed64bee8c8bcfd9743fb",
-    "docs/INSTALL.md": "e61a9554e4cc316255adb51fe6f0cd22caaabea3da29f36b2f29d2c1cd53c1aa",
-    "docs/PROXY-STARTUP-0.4.1.md": "42edfc121c5045676cf023e0afa9ddb39dae39bef64994e1dd6635d905978b90",
-    "docs/RELEASE-NOTES.md": "b4ccd11e6fb82e6e2b8ceae3e622f37d3d259b45ac4de258849c42f777c5c6e0",
-    "docs/STAT-MOD-API.md": "8d4fb5e883d4d29c1a79f6a5028d684b4b1742542db6fe7e1a454e2fc69fb201",
-    "docs/TESTING.md": "7714681e9b1cf6da523fbe57018d1debe66836ff6b3cc0e173e349b1d4eb5dcc",
-    "docs/VERIFYING.md": "184c7ca2f9bcd8333832da72e515de80b19c12cc7ee714bdf17cec61b04a1d86",
     "docs/core-load-results.json": "3b11db78847b084d83bafa9cd7910e2b0c5ed7a4a5617a762a829333235740a2",
     "docs/proxy-lifecycle-test-results.json": "6c51474d68dea4ea89909ae2a78909fa10f64586931253d216dbe8e76f8f4bb9",
     "docs/proxy-test-results.json": "0f3e07f3884abdbc454497505a3dce6db789f08df2f5d67b3de5b805f07112a0",
@@ -26,7 +15,7 @@
     "scripts/test-core.ps1": "243a9223ca7b00749970278d97c57703956158da33e33ef69d1beec3568e11a5",
     "scripts/test-package.ps1": "e4f7cf2e87ff883ad62adb392665d8a9b22d8eb145efcc93273f020724d28b1f",
     "scripts/test-proxy.ps1": "79289d243fdd3dfdf8136b06f1660ab98d8f823b1bf7aa443949dee0765c5bee",
-    "scripts/test.ps1": "d9c951b77f6952313c6d777eb769475ff0982ad0254db38c19723174c3c79c60",
+    "scripts/test.ps1": "1cde391b75572495b752a57baa3db1071d80e09f019acdf061497bfa58b08130",
     "scripts/toolchain.ps1": "86f16d063b423b3fe9c8d5f8a5794ee4c948944f52a43b493aecceb637c157e7",
     "src/SlormLoader.cpp": "98377a9b400847b2b0b543ffa736a0337cf3b970114a51b9807394b84a70e84f",
     "src/SlormLoaderMetadata.hpp": "f9ac58479d1d862e6f044e2e9fbc2acf1d82a090a47a634ed6445979a28e4a54",
@@ -52,6 +41,7 @@
     "tests/version-proxy-host.cpp": "b32ae169eff1308c9b6c218ecbb5d42c233bdca2493a2231de7bb21db1eaaf3f",
     "third_party/runtime-framework/provenance.json": "508de7caeb09c376fe611de6ff70c1c52950b4a094af0e354a267deaecdcc9f8",
     "tools/verify-source.js": "2db0a2f7f4ac77e2267dd77ce5e43a03b352f55d651de3aa4bf24eec1207ab5a",
-    "tests/package-distributions.test.cjs": "dff92dcd6daa2ac97d0e0a13a925ad0656ca9a0b5da7fcab8ce6a08d62d05278"
+    "tests/package-distributions.test.cjs": "dff92dcd6daa2ac97d0e0a13a925ad0656ca9a0b5da7fcab8ce6a08d62d05278",
+    "tests/source-verification.test.cjs": "10faf6637c7b3ba0d4e9142e0dde2bad2a38d96409e6f5b94704e1ed783c6b99"
   }
 }

@@ -19,6 +19,11 @@ ZIPs use unique build/packages/<id> directories and never overwrite a delivered
 archive. No compiled EXE enters player downloads, including source/tools. Source
 inventory and SDK checks are provenance checks, not Windows publisher signatures.
 
+The static source inventory pins code, build/test scripts and dependencies.
+Documentation, including README.md, can be edited without refreshing that
+inventory. Every actual Full ZIP still records checksums of all bundled source
+files, including documentation, and verifies them after packaging.
+
 Each build produces Slorm-Loader-<version>.zip for Nexus players and
 Slorm-Loader-<version>-Full.zip for GitHub. The Full bundle keeps all corresponding
 source and build tools; the lean package copies an explicit player-file allowlist
