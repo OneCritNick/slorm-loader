@@ -11,13 +11,40 @@ Both use the same version and identical runtime files. Install only one. GitHub'
 
 The player ZIP contains **no compiled EXE files**. Game startup uses the same pinned version.dll proxy, plugins/AurieCore.asi and official YYToolkit 5.0.0c as 0.4.2. The Loader DLL identifies itself as 0.6.1. Native DLL/ASI code remains necessary; removing setup EXEs does not bypass Windows application control.
 
-## Install with Vortex
-
+## Installation
+### Vortex
 Close the game. Install Vortex Extension **0.5.0** first, then restart Vortex. Disable the previous runtime, deploy, install Slorm Loader 0.6.1 through Mods, enable it and deploy. Enable only one runtime. Use Hardlink Deployment with staging on the same NTFS volume as the game.
 
 The extension performs setup and recovery directly in JavaScript. Mods toolbar actions provide Configure Slorm Loader, Check Slorm Loader and Restore loader setup. No setup EXE, PowerShell script or separate Node installation is needed with Vortex. Archive/user names and versions are preserved.
 
-Manual users should read [installation](docs/INSTALL.md), especially for an older executable-patching installation. An optional tools/slorm-loader-setup.js command uses an existing Node.js 22+ installation. No Node binary is bundled.
+### For manual installation:
+Simply download and unzip the mod loader in the main game directory. You can then manuall move mod .dll files into the Aurie/Lua folder, see below.
+
+### Mod file structure:
+For a native DLL Aurie/YYToolkit mod, use:
+```
+MyMod.zip
+└── mods/
+    └── Aurie/
+        └── MyMod.dll
+```
+or
+```
+MyMod.zip
+└── MyMod.dll
+```
+Vortex installs these in: ./mods/Aurie
+./mods/Aurie
+
+For Lua mods:
+```
+MyLuaMod.zip
+├─ lua-pack.json
+├─ main.lua
+└─ scripts/          ← optional helper scripts
+  └─ helpers.lua
+```
+Vortex installs these in : ./mods/Lua/<mod-id>/
 
 ## Build and verify
 
