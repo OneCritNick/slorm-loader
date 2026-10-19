@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$ArchivePath,[string]$VCToolsPath,[string]$WindowsSdkRoot,[string]$SdkVersion='10.0.22621.0')
+param([Parameter(Mandatory=$true)][string]$ArchivePath,[Parameter(Mandatory=$true)][string]$NexusArchivePath,[string]$VCToolsPath,[string]$WindowsSdkRoot,[string]$SdkVersion='10.0.22621.0')
 $ErrorActionPreference='Stop';$root=Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'toolchain.ps1');$tc=Initialize-SlormToolchain $VCToolsPath $WindowsSdkRoot $SdkVersion
 $stage=Join-Path $root ('build\package-test-'+[Guid]::NewGuid().ToString('N'));$unpacked=Join-Path $stage 'unpacked'
@@ -14,5 +14,9 @@ $sourcePins=Get-Content "$unpacked\docs\source-checksums.json" -Raw|ConvertFrom-
 foreach($pin in $sourcePins.PSObject.Properties){if((Get-FileHash -LiteralPath "$unpacked\source\$($pin.Name)").Hash.ToLowerInvariant() -ne $pin.Value){throw "Source archive hash differs: $($pin.Name)"}}
 Invoke-SlormChecked 'node' @("$unpacked\source\tools\verify-source.js")
 Invoke-SlormChecked 'node' @("$root\tests\package-bootstrap.test.cjs",$unpacked,"$stage\transactions")
-[ordered]@{archiveSha256=(Get-FileHash $ArchivePath).Hash.ToLowerInvariant();sourceFilesChecked=@($sourcePins.PSObject.Properties).Count;officialYYToolkit=$true;packageInstallRepeatRestore=$true;tamperedCoreRejected=$true;noBundledExe=$true;gameLaunched=$false;result='passed'}|ConvertTo-Json|Set-Content -LiteralPath "$root\build\package-results.json" -Encoding utf8
-Write-Output 'PASS actual EXE-free ZIP, source hashes, package integrity and JavaScript setup/removal; no game launched.'
+$nexus=Join-Path $stage 'nexus'
+Expand-Archive -LiteralPath $NexusArchivePath -DestinationPath $nexus
+Invoke-SlormChecked 'node' @("$root\tests\package-distributions.test.cjs",$unpacked,$nexus)
+Invoke-SlormChecked 'node' @("$root\tests\package-bootstrap.test.cjs",$nexus,"$stage\nexus-transactions")
+[ordered]@{archiveSha256=(Get-FileHash $ArchivePath).Hash.ToLowerInvariant();nexusArchiveSha256=(Get-FileHash $NexusArchivePath).Hash.ToLowerInvariant();sourceFilesChecked=@($sourcePins.PSObject.Properties).Count;identicalRuntimeFiles=$true;leanPlayerAllowlist=$true;officialYYToolkit=$true;packageInstallRepeatRestore=$true;tamperedCoreRejected=$true;noBundledExe=$true;gameLaunched=$false;result='passed'}|ConvertTo-Json|Set-Content -LiteralPath "$root\build\package-results.json" -Encoding utf8
+Write-Output 'PASS both EXE-free ZIPs, complete source hashes, identical player files and JavaScript setup/removal; no game launched.'

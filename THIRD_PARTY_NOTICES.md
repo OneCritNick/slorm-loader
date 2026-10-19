@@ -2,8 +2,8 @@
 
 | Component | Source and license |
 | --- | --- |
-| Project native loader, stat API and C++ tests | AGPL-3.0, root `LICENSE` |
-| Project C# setup, field generator, PowerShell scripts, documentation and test fixtures | MIT, `licenses/PROJECT-MIT.txt` |
+| Project native loader and C++ tests | AGPL-3.0, root `LICENSE` |
+| Project JavaScript setup/recovery, PowerShell scripts, documentation and test fixtures | MIT, `licenses/PROJECT-MIT.txt` |
 | Aurie Core and Patcher | [Aurie 2.0.2](https://github.com/AurieFramework/Aurie/tree/v2.0.2), AGPL-3.0; original and modified trees retain `LICENSE` |
 | YYToolkit | [5.0.0c release](https://github.com/AurieFramework/YYToolkit/releases/tag/v5.0.0c), AGPL-3.0; pinned source commit `d5cc0078bfbfd5907884ad3fe0b3c6cbaa1c3f54` |
 | nlohmann/json 3.12.0 | MIT, `src/vendor/nlohmann/LICENSE.MIT` and original header notices |

@@ -1,6 +1,6 @@
 # Verification limits
 
-Loader 0.6.0 removes gameplay patching. Its Loader DLL is newly compiled; the
+Loader 0.6.1 removes gameplay patching. Its Loader DLL is newly compiled; the
 published bundle uses the exact framework Core, YYToolkit and proxy bytes from
 the validated 0.5.0 distribution. build-info records this distinction. Normal
 source builds can rebuild Core instead; that output is identified separately.

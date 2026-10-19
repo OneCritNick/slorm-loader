@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "slormancer-runtime",
   "name": "Slorm Loader",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": "nick",
   "description": "Mod startup, native discovery/status and bootstrap management. Gameplay APIs and the shared Lua Runtime are separate mods. JSON skill/passive patching has been removed.",
   "type": "runtime",

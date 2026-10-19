@@ -1,11 +1,16 @@
-# Slorm Loader 0.6.0 installation
+# Slorm Loader 0.6.1 installation
 
 ## Vortex
+
+Use Slorm-Loader-0.6.1.zip, the lean player download. The GitHub
+Slorm-Loader-0.6.1-Full.zip has identical runtime files plus source/build tooling;
+it is an alternative download, not an additional mod. Install only one. Source
+references are included in docs/SOURCE.md in both distributions.
 
 1. Close The Slormancer.
 2. Install Vortex Extension 0.5.0 through Extensions and restart Vortex.
 3. Disable the previous Slorm Loader runtime and deploy. Retain .slorm-loader recovery state until migration/removal succeeds.
-4. Install Slorm-Loader-0.6.0.zip through Mods. Enable exactly one runtime and deploy using Hardlink Deployment. The staging folder must be on the same NTFS volume as the game.
+4. Install Slorm-Loader-0.6.1.zip through Mods. Enable exactly one runtime and deploy using Hardlink Deployment. The staging folder must be on the same NTFS volume as the game.
 5. The extension configures the loader directly in JavaScript. Use Check Slorm Loader in the Mods toolbar to inspect setup. Launch the game yourself after deploying your APIs/content.
 
 No separate setup executable, Node installation or PowerShell script is needed with Vortex. The extension supplies Configure Slorm Loader, Check Slorm Loader and Restore loader setup actions in the Mods toolbar. They operate only on the selected Slormancer folder while the game is closed. A check describes the installation and last recorded game session; deployment is not proof that a later game session loaded every mod.
@@ -39,7 +44,7 @@ Native DLL/ASI files remain compiled code and may still be blocked by Windows. N
 ## Retired JSON skill/passive mods
 
 Disable Irremovable, Full Plate Armor and other old JSON patch mods before
-upgrading. Loader 0.6.0 no longer applies them. Remaining folders report an
+upgrading. Loader 0.6.1 no longer applies them. Remaining folders report an
 unsupported error; no files or saves are deleted. Keep Lua Runtime, Legendary
 and Reaper APIs, Item Tool and existing native/Lua content. A separate future
 Skill/Passive API is not included in this release.

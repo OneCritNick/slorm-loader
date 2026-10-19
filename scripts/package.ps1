@@ -76,14 +76,50 @@ Get-ChildItem -LiteralPath "$payload\source" -File -Recurse|Sort-Object FullName
     $sourceHashes[$relative]=(Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()
 }
 $sourceHashes|ConvertTo-Json -Depth 4|Set-Content -LiteralPath "$payload\docs\source-checksums.json" -Encoding utf8
+$sourceCommit=(& git -C $root rev-parse HEAD 2>$null)
+$sourceDirty=(& git -C $root status --porcelain 2>$null)
+$sourceUrl='https://github.com/OneCritNick/slorm-loader'
+if($sourceCommit -match '^[a-f0-9]{40}$' -and -not $sourceDirty){$sourceUrl+='/tree/'+$sourceCommit}
+$sourceNotice=@"
+# Slorm Loader $($meta.version) source
+
+The Nexus player ZIP omits developer sources, tests and build tooling.
+The matching Slorm-Loader-$($meta.version)-Full.zip contains the complete source,
+dependency sources, licenses, build scripts and verification tools under source/.
+Both downloads contain identical runtime files; install only one.
+
+Source repository: $sourceUrl
+The Full ZIP is intended to accompany this player ZIP in the GitHub release.
+For build instructions, see source/docs/BUILD.md in that download.
+"@
+[IO.File]::WriteAllText("$payload\docs\SOURCE.md",$sourceNotice)
 $pins=[ordered]@{}
 foreach($name in @('version.dll','version.ini','plugins\AurieCore.asi','mods\Aurie\YYToolkit.dll','mods\Aurie\SlormLoader.dll','slorm-runtime.json')){$pins[$name]=(Get-FileHash -LiteralPath "$payload\$name").Hash.ToLowerInvariant()}
 $pins|ConvertTo-Json|Set-Content -LiteralPath "$payload\slorm-loader-checksums.json" -Encoding utf8
 [ordered]@{schemaVersion=1;runtimeVersion=$meta.version;kind='development-source-build';builtAtUtc=[DateTime]::UtcNow.ToString('o');toolchain=$provenance;packagedCore=@{origin=$frameworkOrigin;sha256=$pins['plugins\AurieCore.asi']};yyToolkit=@{release='v5.0.0c';url=$url;sha256=$expected;origin='Pinned official release binary; not the optional source candidate'};sourceFileCount=$sourceHashes.Count;liveGameTested=$false}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath "$payload\docs\build-info.json" -Encoding utf8
-$archive=Join-Path $stage ("Slorm-Loader-"+$meta.version+'.zip')
+$archive=Join-Path $stage ("Slorm-Loader-"+$meta.version+'-Full.zip')
 if(@(Get-ChildItem -LiteralPath $payload -Recurse -File|Where-Object {$_.Extension -ieq '.exe'}).Count){throw 'Player runtime must not contain any compiled EXE.'}
 Compress-Archive -Path "$payload\*" -DestinationPath $archive
 $sha=(Get-FileHash -LiteralPath $archive).Hash.ToLowerInvariant()
-[IO.File]::WriteAllText((Join-Path $stage 'SHA256SUMS.txt'),$sha+'  '+[IO.Path]::GetFileName($archive)+[Environment]::NewLine)
-[ordered]@{archive=$archive;directory=$payload;sha256=$sha;version=$meta.version;developmentBuild=$true}|ConvertTo-Json|Set-Content -LiteralPath "$build\latest-package.json" -Encoding utf8
-Write-Output "Built runtime-only archive: $archive"
+# Explicit player allowlist: sources, test evidence and build diagnostics stay in Full.
+$player=Join-Path $stage 'nexus'
+$playerFiles=@(
+    'version.dll','version.ini','plugins/AurieCore.asi','mods/Aurie/YYToolkit.dll','mods/Aurie/SlormLoader.dll',
+    'slorm-runtime.json','slorm-loader-checksums.json',
+    'tools/slorm-loader-setup.js','tools/bootstrap.js','tools/strict-json.js',
+    'docs/README.md','docs/RELEASE-NOTES.md','docs/SECURITY.md','docs/BOOTSTRAP.md','docs/SOURCE.md',
+    'docs/CREDITS.md','docs/LICENSE-AGPL.txt','docs/LICENSE-setup-MIT.txt','docs/LICENSE-json-MIT.txt',
+    'docs/LICENSE-Ultimate-ASI-Loader.txt','docs/THIRD-PARTY-NOTICES.txt'
+)
+foreach($name in $playerFiles){
+    $destination=Join-Path $player $name
+    New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force|Out-Null
+    Copy-Item -LiteralPath (Join-Path $payload $name) -Destination $destination
+}
+$nexusArchive=Join-Path $stage ("Slorm-Loader-"+$meta.version+'.zip')
+Compress-Archive -Path "$player\*" -DestinationPath $nexusArchive
+$nexusSha=(Get-FileHash -LiteralPath $nexusArchive).Hash.ToLowerInvariant()
+[IO.File]::WriteAllText((Join-Path $stage 'SHA256SUMS.txt'),$sha+'  '+[IO.Path]::GetFileName($archive)+[Environment]::NewLine+$nexusSha+'  '+[IO.Path]::GetFileName($nexusArchive)+[Environment]::NewLine)
+[ordered]@{archive=$archive;directory=$payload;sha256=$sha;nexusArchive=$nexusArchive;nexusDirectory=$player;nexusSha256=$nexusSha;version=$meta.version;developmentBuild=$true}|ConvertTo-Json|Set-Content -LiteralPath "$build\latest-package.json" -Encoding utf8
+Write-Output "Built complete runtime/source archive: $archive"
+Write-Output "Built lean Nexus player archive: $nexusArchive"

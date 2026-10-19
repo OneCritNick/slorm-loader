@@ -1,12 +1,19 @@
-# Slorm Loader 0.6.0
+# Slorm Loader 0.6.1
 
 Windows x64 mod runtime for The Slormancer. Bundles Aurie Core, YYToolkit and the Slorm Loader module. Legendary API, Reaper API, Lua Runtime and gameplay mods are separate packages.
 
-The player ZIP contains **no compiled EXE files**. Game startup uses the same pinned version.dll proxy, plugins/AurieCore.asi and official YYToolkit 5.0.0c as 0.4.2. The Loader DLL identifies itself as 0.6.0. Native DLL/ASI code remains necessary; removing setup EXEs does not bypass Windows application control.
+## Downloads
+
+- **Slorm-Loader-0.6.1.zip**: lean player download for Nexus/Vortex. Includes runtime files, manual setup/recovery scripts, installation instructions and licenses.
+- **Slorm-Loader-0.6.1-Full.zip**: complete GitHub bundle with the same runtime files plus corresponding source, dependency sources, tests, build tools and developer documentation.
+
+Both use the same version and identical runtime files. Install only one. GitHub's repository source ZIP remains complete; it contains source and build tools rather than prebuilt runtime DLLs. The player ZIP includes a source reference in docs/SOURCE.md.
+
+The player ZIP contains **no compiled EXE files**. Game startup uses the same pinned version.dll proxy, plugins/AurieCore.asi and official YYToolkit 5.0.0c as 0.4.2. The Loader DLL identifies itself as 0.6.1. Native DLL/ASI code remains necessary; removing setup EXEs does not bypass Windows application control.
 
 ## Install with Vortex
 
-Close the game. Install Vortex Extension **0.5.0** first, then restart Vortex. Disable the previous runtime, deploy, install Slorm Loader 0.6.0 through Mods, enable it and deploy. Enable only one runtime. Use Hardlink Deployment with staging on the same NTFS volume as the game.
+Close the game. Install Vortex Extension **0.5.0** first, then restart Vortex. Disable the previous runtime, deploy, install Slorm Loader 0.6.1 through Mods, enable it and deploy. Enable only one runtime. Use Hardlink Deployment with staging on the same NTFS volume as the game.
 
 The extension performs setup and recovery directly in JavaScript. Mods toolbar actions provide Configure Slorm Loader, Check Slorm Loader and Restore loader setup. No setup EXE, PowerShell script or separate Node installation is needed with Vortex. Archive/user names and versions are preserved.
 
@@ -24,7 +31,7 @@ Developed by nick with AI-assisted code/documentation. Native runtime code is AG
 
 ## Gameplay boundary
 
-Loader 0.6.0 manages native startup, discovery/status and diagnostics about mod
+Loader 0.6.1 manages native startup, discovery/status and diagnostics about mod
 loading. It performs no skill/passive table writes or gameplay script hooks.
 Disable old JSON patches such as Irremovable and Full Plate Armor before
 upgrading. Leftovers are reported as unsupported and never applied; native mods

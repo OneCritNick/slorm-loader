@@ -28,6 +28,7 @@ jobs:
           ./build.ps1
           $package = Get-Content build/latest-package.json -Raw | ConvertFrom-Json
           "archive=$($package.archive)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "nexus_archive=$($package.nexusArchive)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       - name: Ensure generators leave tracked source unchanged
         run: git diff --exit-code
       - name: Upload complete runtime package and evidence
@@ -38,6 +39,7 @@ jobs:
           if-no-files-found: error
           path: |
             ${{ steps.package.outputs.archive }}
+            ${{ steps.package.outputs.nexus_archive }}
             build/build-provenance.json
             build/package-results.json
 

@@ -12,7 +12,8 @@ const before=bootstrap.hash(game,'The Slormancer.exe'),engine=bootstrap.createBo
 engine.install(game);engine.install(game);engine.check(game);assert.equal(bootstrap.hash(game,'The Slormancer.exe'),before);
 engine.restore(game);engine.restore(game);assert(!bootstrap.receipt(game));
 const core=path.join(game,'plugins/AurieCore.asi');fs.writeFileSync(core,'corrupted');assert.throws(()=>engine.install(game),/missing or changed/);assert.equal(bootstrap.hash(game,'The Slormancer.exe'),before);assert(!bootstrap.receipt(game));
-for(const name of ['bootstrap.js','strict-json.js'])assert.deepEqual(fs.readFileSync(path.join(packageRoot,'tools',name)),fs.readFileSync(path.join(packageRoot,'source/src',name)));
+const referenceSource=fs.existsSync(path.join(packageRoot,'source'))?path.join(packageRoot,'source'):path.resolve(__dirname,'..');
+for(const [packaged,source] of [['slorm-loader-setup.js','setup.js'],['bootstrap.js','bootstrap.js'],['strict-json.js','strict-json.js']])assert.deepEqual(fs.readFileSync(path.join(packageRoot,'tools',packaged)),fs.readFileSync(path.join(referenceSource,'src',source)));
 const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(path.join(dir,e.name)):[path.join(dir,e.name)]);
 assert(!walk(packageRoot).some(f=>/\.exe$/i.test(f)),'No compiled EXE anywhere in the player archive');
 fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({result:'passed',packageInstallRepeatCheckRestore:true,tamperedCoreRejected:true,exePreserved:true,noBundledExe:true,gameLaunched:false}));

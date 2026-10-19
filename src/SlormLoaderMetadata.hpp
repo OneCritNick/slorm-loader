@@ -8,5 +8,5 @@
 #include <fstream>
 namespace Slorm {
 using Json=nlohmann::json;
-inline constexpr const char* RuntimePackageVersion="0.6.0";
+inline constexpr const char* RuntimePackageVersion="0.6.1";
 }

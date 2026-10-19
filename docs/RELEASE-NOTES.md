@@ -1,4 +1,17 @@
-# Slorm Loader 0.6.0
+# Slorm Loader 0.6.1
+
+- Added a lean Nexus player ZIP without bundled developer sources, tests or build
+  diagnostics. Runtime DLLs, manual setup/recovery scripts, instructions, credits
+  and license notices are retained.
+- Complete source, dependency trees and build tools remain in the matching
+  GitHub Full bundle and repository. Both ZIPs use the same version and identical
+  runtime files; install only one.
+- Both distributions are verified from their actual ZIPs, including fixture
+  installation, repeated setup, removal and tamper rejection.
+- No mod-loading behavior, recovery logic, gameplay APIs or save handling changed.
+  Vortex Extension 0.5.0 remains compatible.
+
+## Slorm Loader 0.6.0
 
 - Removed built-in JSON skill/passive patching, skill-table/cache writes,
   field registries and gameplay diagnostic hooks.

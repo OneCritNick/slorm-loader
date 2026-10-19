@@ -11,7 +11,7 @@ for(const file of ['SlormStatRuntime.hpp','SlormStatApi.hpp','SlormModModel.hpp'
   assert(!fs.existsSync(path.join(root,'src',file)),file);checks++;
 }
 const meta=JSON.parse(read('src/slorm-runtime.json'));
-assert.equal(meta.version,'0.6.0');assert(!('patches' in meta));checks++;
+assert.equal(meta.version,'0.6.1');assert(!('patches' in meta));checks++;
 assert(read('src/SlormLoaderStatus.hpp').includes('Disable this old JSON mod in Vortex'));checks++;
 assert(!/SlormStat|stat-api|generate-field-spec/.test(read('scripts/build.ps1')+read('scripts/test.ps1')));checks++;
 console.log(`PASS ${checks} Loader-only architecture and retired JSON checks`);
