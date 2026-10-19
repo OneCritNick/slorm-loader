@@ -1,0 +1,6 @@
+{
+  "archiveName": "Slorm-Loader-0.5.0.zip",
+  "archiveSha256": "4c04f1d2e0c1e7d90f3bfd01b48b75f4cf3c88fba635898658e7eae6ab77521f",
+  "coreSha256": "51e78b45b1dadd942c6ed120384c23aa7103509c496463ba23831d2c658ece1e",
+  "purpose": "Optional unchanged framework dependency for a Loader-only release; never includes the older Loader DLL"
+}

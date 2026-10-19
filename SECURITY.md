@@ -1,27 +1,21 @@
 # Runtime behavior and security reports
 
-Slorm Loader loads native game modifications. This document describes the reviewed implementation; it is not a certification of every dependency or mod.
+Slorm Loader loads native game modifications. This describes implementation behavior, not certification of every dependency or mod.
 
-## Installation and removal
+## Setup and ownership
 
-Current 0.4.x packages use an unchanged, SHA-256-pinned Ultimate ASI Loader 9.0.0 as `version.dll`, with Aurie Core loaded from `plugins/AurieCore.asi`. Normal proxy install/check/removal leaves `The Slormancer.exe` unchanged. Setup verifies package hashes, checks ownership/path constraints, and records `mode=version-proxy` under `.slorm-loader/state`. It refuses setup changes while the game is running. The current runtime ZIP does not deploy AuriePatcher or `mods/Native/AurieCore.dll`.
+The 0.6.0 player archive contains no compiled EXE. Vortex Extension 0.5.0 runs setup/check/restore as its own JavaScript. Optional manual JavaScript requires an existing Node.js 22+ installation. The only setup process query uses Windows' own System32/tasklist.exe. No PowerShell setup, bundled Node binary, native helper or legacy Patcher is launched.
 
-Older 0.3.x packages patched the executable. Migration can restore a verified, owned legacy patch from its saved original before configuring the proxy. That restoration replaces the executable with its verified original; it is distinct from normal proxy operation. Setup rejects unowned patches, damaged backups and a duplicate legacy Core. Keep the old `.slorm-loader/state` until migration has completed.
+Startup retains the SHA-256-pinned version.dll proxy, Core ASI and official YYToolkit. Normal proxy setup/removal preserves the game EXE. Migration from 0.3.x can replace only an owned legacy executable with its verified saved original; unknown changes, damaged backups and ambiguous old transactions are refused. Hardlinks are supported; checked symbolic links/junctions are rejected. Atomic metadata replacement preserves external hardlink aliases.
 
-Vortex owns deployment/removal of proxy files. Its extension retains a checksum-verified recovery helper and pending action under `.slorm-loader` for interrupted lifecycle operations. Event errors cannot veto every Vortex operation; external deletion or damaged recovery files can require manual recovery. See [installation](docs/INSTALL.md) and [bootstrap details](docs/BOOTSTRAP.md).
+Vortex owns deployed files. Data-only pending records remain under .slorm-loader for interrupted operations. Exact old cached-helper ownership permits unlinking that file, never executing it. Recovery does not require package files after purge. Event failures cannot veto every Vortex operation; damaged external state can require manual help. See docs/INSTALL.md and docs/BOOTSTRAP.md.
 
-Hardlinks are supported. Symlinks and junctions in checked game/mod paths are rejected. Supplied hashes detect changes relative to the package manifest; they are not cryptographic publisher signatures.
+## Native code and Windows
 
-## Game process and application control
+DLL/ASI files remain compiled native code. Aurie installs hooks; YYToolkit inspects the runner; the Loader manages guarded patches, callbacks and local diagnostics. Renaming a DLL to .asi does not sign or exempt it from Smart App Control. Removing EXEs does not guarantee Windows or Nexus acceptance. No application-control or antivirus setting is changed.
 
-Aurie loads native modules and installs hooks. YYToolkit inspects GameMaker internals and exposes game data/functions. Slorm Loader registers callbacks, changes selected skill fields in memory, invalidates affected caches, draws the mod count and writes local logs/status under `.slorm-loader`.
+Native gameplay DLLs run with the game's permissions and are not sandboxed. The Loader/setup does not intentionally edit saves or data.win, install services or send telemetry. Other mods have their own behavior. Logs can contain personal paths; redact before sharing.
 
-JSON patches use expected-value guards, dependency/conflict checks and conditional rollback. Native DLLs are not sandboxed: they run with the game's permissions. Renaming Core to `.asi` does not sign it or exempt it from Smart App Control. Application-control acceptance was observed on the development machine; other systems may make different trust decisions. This runtime does not disable SAC or change antivirus settings.
+Developer scripts can download fixed hash-checked dependencies and compile/run isolated fixture EXEs. They remain outside the player ZIP. CI upload/provenance services are development behavior.
 
-The loader/setup does not intentionally edit saves or `data.win`, install services, or send telemetry. Separate gameplay mods can have their own behavior. Logs may contain absolute paths and diagnostic game values; redact personal paths before sharing.
-
-Build scripts can download fixed, hash-checked dependency releases and run isolated test executables. CI uses GitHub artifact upload/provenance services. Those development operations are separate from installed runtime behavior.
-
-## Reporting
-
-Report potential vulnerabilities privately through the repository's security reporting option, if available, or the maintainer's Nexus Mods profile. Do not publish credentials, private paths or save data. For ordinary loading failures, provide game/runtime/extension versions, reproduction steps, fresh `aurie.log` and relevant `.slorm-loader/logs` files with personal information redacted.
+Report potential vulnerabilities privately through the repository's reporting option or the maintainer's Nexus profile. For ordinary loading issues, supply versions, reproduction steps, fresh aurie.log and relevant .slorm-loader logs with personal paths redacted. Never share credentials or private save data publicly.

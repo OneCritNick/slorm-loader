@@ -1,27 +1,18 @@
-# Runtime tests and validation
+# Test scope — Loader 0.6.0
 
-The repository tests the runtime and its package. Extension/creator tests and installable gameplay mods are separate. `tests/fixtures/stat-manifests.json` contains regression inputs and is not deployed as gameplay content.
+The native status suite checks current-session Aurie log evidence, rejected and
+uninitialized DLLs, architecture/signatures, basename ambiguity, module aliases,
+framework exclusion, incomplete scans, shared log access and atomic status files.
+Old JSON folders are unsupported, never applied, and cannot stop native status.
+The architecture test verifies that skill writes/hooks, field registries and
+stat-patch parsers are absent. A separate host loads SlormLoader.dll and checks
+exports without invoking game initialization.
 
-## Isolated checks
+Core/proxy suites use isolated surrogate programs. Bootstrap/package tests use
+inert PE buffers, actual ZIP hashes and disposable filesystem links. They cover
+install/repeat/check/restore, verified legacy recovery, purge, external changes,
+corrupt backups and tamper rejection. No game, saves or Vortex deployment is used.
 
-The root build command runs 130 native API checks for metadata parsing, guards, dependencies, rollback, character switching, status and current/stale log handling. It checks source-built original Core, five candidate startups and a copied missing-manifest negative DLL that must fail with Windows error 182.
-
-Five proxy fixtures cover a synthetic Core, real Core, early/nested callback ordering through InitializeASI, a directly loaded Core with a running main thread, and an absent Core. They compare forwarded Windows version APIs with System32, verify callback order and check that surrogate executables remain byte-identical.
-
-Setup tests exercise proxy install, check, repeated setup, receipt removal and status summaries using a benign x64 executable. Package tests unpack the actual ZIP, verify source/component hashes and official YYToolkit, repeat setup operations and reject a corrupted Core before changing the fixture EXE. The source build still compiles AuriePatcher as a retained legacy reference; the proxy package does not deploy or invoke it for installation.
-
-These checks never launch The Slormancer or use saves. The original Core smoke hosts have empty mod directories; proxy ordering tests load only synthetic test modules. Test outputs remain under ignored `build/`. Disposable hardlink checks need normal NTFS access to their fixture directory, without changing Windows security settings.
-
-## User validation of the released binaries
-
-On 18 October 2026 the user installed 0.4.1 through Vortex and launched the game. The matching session showed YYToolkit initialized, seven installed native mods loaded, zero errors, zero pending mods and a complete scan. The user confirmed modded items worked. The user subsequently confirmed extension 0.2.11 retained the loader's name and version.
-
-One YYToolkit instruction-scanning warning remained; runner discovery and initialization then succeeded. This is evidence of successful loading on that setup, not exhaustive testing of every API effect, mod combination or Windows trust policy.
-
-Version 0.4.2 is a fresh build and needs its own user game test. The successful 0.4.1 session is prior compatibility evidence, not a live-game test of the new binaries. A final live purge/redeploy/vanilla-start cycle for the public upload has not been claimed as completed; the corresponding offline Vortex lifecycle tests passed.
-
-## CI and independently built packages
-
-GitHub Actions runs the source build/tests on Windows 2022 and uploads a development ZIP with toolchain evidence. Public main-branch builds can generate attestations; private builds skip that job. CI artifact availability is not a live-game acceptance result or proof that an independently built binary equals a historical release.
-
-The proxy test runner owns its .NET process handles and drains stdout/stderr concurrently. This preserves exit codes under Windows PowerShell 5.1 as well as PowerShell 7; a missing or nonzero exit code still fails the check. This is build/test behavior only and does not alter the installed runtime.
+The 0.6.0 delivery keeps framework bytes from the validated 0.5.0 archive and
+rebuilds only the packaged Loader DLL. Native C++/Lua gameplay APIs are separate
+and unchanged. User installation/gameplay testing is still required.

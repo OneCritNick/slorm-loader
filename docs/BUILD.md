@@ -1,39 +1,22 @@
-# Build the runtime package
+# Build Loader 0.6.0
 
-Prerequisites: Windows x64, PowerShell, Visual Studio 2022 C++ Build Tools, Windows SDK 10.0.22621.0, Node.js 22+ and .NET Framework 4.x. Compatible Microsoft C++ runtime libraries are needed to run the built DLLs.
+Use Windows x64, PowerShell, MSVC with C++20, Windows SDK 10.0.22621.0 and
+Node.js 22+ and Python 3 for the isolated DLL-load test. Root build.ps1 builds Loader and both Core test variants, runs the
+native status/architecture/DLL-load/Core/proxy/bootstrap suites, packages and
+checks the actual ZIP. No game is launched and no deployment is changed.
 
-```powershell
-.\build.ps1
-```
+-VCToolsPath, -WindowsSdkRoot, -SdkVersion and -YYToolkitPath select local tools
+and the pinned official YYToolkit binary. Dependencies use fixed SHA-256 pins;
+the optional source YYToolkit candidate is never packaged as the official DLL.
 
-Visual Studio is detected with vswhere. Explicit paths are supported:
+For a Loader-only release, -FrameworkArchive can supply the exact validated
+Slorm-Loader-0.5.0.zip pinned in third_party/runtime-framework/provenance.json.
+Only its Core ASI is reused; Loader is always newly compiled. Proxy and YYToolkit
+already use their own unchanged official pins. Build-info identifies the Core
+actually packaged separately from source-built Core test products.
 
-```powershell
-.\build.ps1 -VCToolsPath 'C:\BuildTools\VC\Tools\MSVC\14.40.33807' -WindowsSdkRoot 'C:\Program Files (x86)\Windows Kits\10'
-```
+ZIPs use unique build/packages/<id> directories and never overwrite a delivered
+archive. No compiled EXE enters player downloads, including source/tools. Source
+inventory and SDK checks are provenance checks, not Windows publisher signatures.
 
-The root command compiles five outputs: loader, setup, modified Core, original Core (test baseline only) and Patcher. It runs 130 native API checks, isolated Core startup/negative tests and setup transaction tests. It then creates the complete installable ZIP and validates the unpacked package using a benign PE fixture. No game files or saves are required or launched.
-
-The proxy suite also verifies ModuleEntrypoint, ModulePreinitialize and ModuleInitialize order, a dependency loaded during preinitialization, and the early-startup barrier. It exercises both UAL startup and a directly loaded Core with a running main thread. Core exports must preserve all upstream entries and add only InitializeASI.
-
-## YYToolkit dependency
-
-The package uses the exact official x64 5.0.0c DLL pinned by `third_party/yytk-sdk/provenance.json`. Packaging downloads it from its fixed GitHub release URL and verifies SHA-256 before use; subsequent builds verify the cached copy. For an offline build, provide an existing matching DLL:
-
-```powershell
-.\build.ps1 -YYToolkitPath 'C:\Dependencies\YYToolkit.dll'
-```
-
-A mismatched DLL is rejected. The optional `scripts/build.ps1 -BuildYYToolkit` compiles the pinned experimental source as `YYToolkit-source-candidate.dll` for inspection. The packager does not substitute that unverified candidate for the accepted release binary. Source and binary reproducibility limits are documented in VERIFYING.md.
-
-## Outputs and individual steps
-
-Every package goes into a fresh `build/packages/<build-id>/` directory, including the ZIP, SHA256SUMS.txt and staged runtime. `build/latest-package.json` identifies it. Existing packages and installed games are not overwritten.
-
-For development, the individual commands are `scripts/build.ps1`, `scripts/test.ps1`, `scripts/package.ps1`, and `scripts/test-package.ps1 -ArchivePath <zip>`. Compiler/SDK options are accepted by build and test scripts. Packaging checks each compiled output against build-provenance.json and only copies an explicit runtime/source allowlist.
-
-The ZIP includes a self-contained source tree with this same root build command. It contains dependency source/notices, runtime tests and fixtures, not the extension, creator, gameplay packages, compiler or game data. Complete source-file hashes and build/dependency metadata are stored under its docs folder. Filesystem permissions must allow disposable hardlinks under build for the native tests.
-
-`docs/source-inventory.json` records the retained source snapshot. Intentional edits require reviewing/updating affected entries. `.gitattributes` preserves upstream SDK bytes. These repository-controlled hashes are audit aids, not publisher signatures.
-
-Version 0.4.2 is a fresh source build with matching manifest and runtime-log versions. Before publishing newly compiled binaries, repeat the relevant live-game loading, gameplay and purge/redeploy checks. Generated build metadata describes the build-time test scope; successful tests of previous binaries are recorded separately in TESTING.md and RELEASE-NOTES.md.
+With -FrameworkArchive, tests verify the exact dependency archive pin and do not repeat Core/proxy startup tests for those unchanged shipped bytes. The Loader is newly built and tested. -PythonPath selects the developer Python interpreter; no Python binary is bundled.

@@ -13,14 +13,11 @@ foreach($item in $pin.files.PSObject.Properties){
     $file=Join-Path $sdk $item.Name
     if((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant() -ne $item.Value){throw "SDK pin differs: $($item.Name)"}
 }
-Invoke-SlormChecked 'node' @((Join-Path $root 'tools\generate-field-spec.js'))
 Push-Location $stage
 try {
     Invoke-SlormChecked $tc.cl @('/nologo','/EHsc','/std:c++20','/MD','/O2','/LD','/DNDEBUG',"/I$include","/Fe:$stage\SlormLoader.dll","$root\src\SlormLoader.cpp","$include\YYToolkit\YYTK_Shared_Types.cpp",'/link','user32.lib')
     $exports=Get-SlormExports $tc "$stage\SlormLoader.dll"
     foreach($name in @('__AurieFrameworkInit','__AurieIsDebugBuild','ModuleInitialize','ModuleUnload')){if($name -notin $exports){throw "Loader export missing: $name"}}
-    $csc=Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-    Invoke-SlormChecked $csc @('/nologo','/target:exe','/platform:x64','/optimize+',"/out:$stage\SlormLoaderSetup.exe",'/r:System.Web.Extensions.dll','/r:System.Windows.Forms.dll',"$root\src\SlormLoaderSetup.cs")
     function Build-Core([string]$Tree,[string]$Name){
         $unit=Join-Path $stage $Name;New-Item -ItemType Directory -Path $unit|Out-Null;Push-Location $unit
         try{
@@ -38,11 +35,7 @@ try {
     Build-Core (Join-Path $root 'third_party\aurie-original') 'AurieCore-original'
     $original=Get-SlormExports $tc "$stage\AurieCore-original.dll";$modified=Get-SlormExports $tc "$stage\AurieCore.dll"
     if(-not $original.Count -or (Compare-Object ($original+@('InitializeASI')|Sort-Object) $modified)){throw 'Core exports must retain every upstream export and add only InitializeASI.'}
-    $patcher=Join-Path $root 'third_party\aurie-original\AuriePatcher'
-    Invoke-SlormChecked $tc.rc @('/nologo','/c65001',"/fo$stage\AuriePatcher.res","/I$patcher","$patcher\AuriePatcher.rc")
-    Invoke-SlormChecked $tc.cl @('/nologo','/EHsc','/std:c++20','/MT','/O2','/utf-8','/DNDEBUG','/DUNICODE','/D_UNICODE',"/I$patcher\include","/Fe:$stage\AuriePatcher.exe","$patcher\source\main.cpp","$patcher\include\PE\pe_parser.cpp","$stage\AuriePatcher.res",'/link','/SUBSYSTEM:CONSOLE','/MANIFEST:EMBED','ntdll.lib','comctl32.lib','comdlg32.lib','user32.lib')
-    Assert-SlormManifest $tc "$stage\AuriePatcher.exe" 1 "$stage\patcher.manifest"
-    $products=@('SlormLoader.dll','SlormLoaderSetup.exe','AurieCore.dll','AurieCore-original.dll','AuriePatcher.exe')
+    $products=@('SlormLoader.dll','AurieCore.dll','AurieCore-original.dll')
     if($BuildYYToolkit){
         $tree=Join-Path $root 'third_party\yytk-source\YYToolkit';$unit=Join-Path $stage 'yytk';New-Item -ItemType Directory -Path $unit|Out-Null;Push-Location $unit
         try{

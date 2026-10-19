@@ -1,11 +1,11 @@
-param([string]$YYToolkitPath)
+param([string]$YYToolkitPath,[string]$FrameworkArchive)
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
 $build=Join-Path $root 'build'
 $meta=Get-Content -LiteralPath "$root\src\slorm-runtime.json" -Raw|ConvertFrom-Json
 if($meta.version -notmatch '^\d+\.\d+\.\d+$'){throw 'Invalid runtime package version'}
 $provenance=Get-Content -LiteralPath "$build\build-provenance.json" -Raw|ConvertFrom-Json
-foreach($name in @('SlormLoader.dll','SlormLoaderSetup.exe','AurieCore.dll')){
+foreach($name in @('SlormLoader.dll','AurieCore.dll')){
     $pin=$provenance.hashes.$name
     if(-not $pin -or (Get-FileHash -LiteralPath "$build\$name").Hash.ToLowerInvariant() -ne $pin){throw "Build output missing or changed: $name. Run build.ps1 first."}
 }
@@ -28,13 +28,25 @@ if((Get-FileHash -LiteralPath $YYToolkitPath).Hash.ToLowerInvariant() -ne $expec
 $proxy=Get-SlormProxy $root
 $packages=Join-Path $build 'packages';New-Item -ItemType Directory -Path $packages -Force|Out-Null
 $stage=Join-Path $packages ([Guid]::NewGuid().ToString('N'));$payload=Join-Path $stage 'runtime'
-New-Item -ItemType Directory -Path "$payload\plugins","$payload\mods\Aurie","$payload\mods\Slormancer","$payload\docs","$payload\source"|Out-Null
+New-Item -ItemType Directory -Path "$payload\plugins","$payload\mods\Aurie","$payload\docs","$payload\source"|Out-Null
 Copy-Item -LiteralPath "$build\SlormLoader.dll" -Destination "$payload\mods\Aurie\SlormLoader.dll"
 Copy-Item -LiteralPath "$build\AurieCore.dll" -Destination "$payload\plugins\AurieCore.asi"
+$frameworkOrigin='Current source build'
+if($FrameworkArchive){
+    $frameworkPin=Get-Content "$root/third_party/runtime-framework/provenance.json" -Raw|ConvertFrom-Json
+    if((Get-FileHash -LiteralPath $FrameworkArchive).Hash.ToLowerInvariant() -ne $frameworkPin.archiveSha256){throw 'Pinned framework archive differs'}
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $frameworkZip=[IO.Compression.ZipFile]::OpenRead((Resolve-Path -LiteralPath $FrameworkArchive).Path)
+    try{[IO.Compression.ZipFileExtensions]::ExtractToFile($frameworkZip.GetEntry('plugins/AurieCore.asi'),"$payload/plugins/AurieCore.asi",$true)}finally{$frameworkZip.Dispose()}
+    if((Get-FileHash "$payload/plugins/AurieCore.asi").Hash.ToLowerInvariant() -ne $frameworkPin.coreSha256){throw 'Pinned framework Core differs'}
+    $frameworkOrigin='Unchanged validated framework from '+$frameworkPin.archiveName
+}
 Copy-Item -LiteralPath $proxy -Destination "$payload\version.dll"
 Copy-Item -LiteralPath "$root\src\version.ini" -Destination "$payload\version.ini"
 Copy-Item -LiteralPath "$root\third_party\ual\LICENSE.txt" -Destination "$payload\docs\LICENSE-Ultimate-ASI-Loader.txt"
-Copy-Item -LiteralPath "$build\SlormLoaderSetup.exe" -Destination "$payload\SlormLoaderSetup.exe"
+New-Item -ItemType Directory -Path "$payload\tools"|Out-Null
+Copy-Item -LiteralPath "$root\src\setup.js" -Destination "$payload\tools\slorm-loader-setup.js"
+foreach($name in @('bootstrap.js','strict-json.js')){Copy-Item -LiteralPath "$root\src\$name" -Destination "$payload\tools\$name"}
 Copy-Item -LiteralPath $YYToolkitPath -Destination "$payload\mods\Aurie\YYToolkit.dll"
 Copy-Item -LiteralPath "$root\src\slorm-runtime.json" -Destination "$payload\slorm-runtime.json"
 Copy-Item -LiteralPath "$root\docs\INSTALL.md" -Destination "$payload\docs\README.md"
@@ -49,9 +61,8 @@ Copy-Item -LiteralPath "$root\THIRD_PARTY_NOTICES.md" -Destination "$payload\doc
 $notices='Third-party notices for the runtime dependencies.'+[Environment]::NewLine
 foreach($name in @('spdlog-LICENSE.txt','fmt-LICENSE.txt','SafetyHook-LICENSE.txt','Zydis-Zycore-notices.txt')){$notices+=[Environment]::NewLine+$name+[Environment]::NewLine+(Get-Content -LiteralPath "$root\licenses\$name" -Raw)}
 [IO.File]::WriteAllText("$payload\docs\THIRD-PARTY-NOTICES.txt",$notices)
-[IO.File]::WriteAllText("$payload\mods\Slormancer\README.txt",'Manual JSON mods: create <mod-id>\mod.json here. Close the game before deployment changes. Vortex manages only its deployed mods.')
 # Explicit source allowlist: never copy a game, build directory, toolchain, Git credentials or sibling projects.
-foreach($dir in @('src','scripts','tests','third_party','tools','docs','licenses')){
+foreach($dir in @('src','scripts','tests','third_party','tools','docs','licenses','.github')){
     $entries=@(Get-ChildItem -LiteralPath "$root\$dir" -Force -Recurse)
     if(@($entries|Where-Object {($_.Attributes -band [IO.FileAttributes]::ReparsePoint) -or ($_.PSIsContainer -and $_.Name -in @('.git','node_modules','build'))}).Count){throw "Linked/generated directories cannot enter source: $dir"}
     Copy-Item -LiteralPath "$root\$dir" -Destination "$payload\source\$dir" -Recurse
@@ -68,8 +79,9 @@ $sourceHashes|ConvertTo-Json -Depth 4|Set-Content -LiteralPath "$payload\docs\so
 $pins=[ordered]@{}
 foreach($name in @('version.dll','version.ini','plugins\AurieCore.asi','mods\Aurie\YYToolkit.dll','mods\Aurie\SlormLoader.dll','slorm-runtime.json')){$pins[$name]=(Get-FileHash -LiteralPath "$payload\$name").Hash.ToLowerInvariant()}
 $pins|ConvertTo-Json|Set-Content -LiteralPath "$payload\slorm-loader-checksums.json" -Encoding utf8
-[ordered]@{schemaVersion=1;runtimeVersion=$meta.version;kind='development-source-build';builtAtUtc=[DateTime]::UtcNow.ToString('o');toolchain=$provenance;yyToolkit=@{release='v5.0.0c';url=$url;sha256=$expected;origin='Pinned official release binary; not the optional source candidate'};sourceFileCount=$sourceHashes.Count;liveGameTested=$false}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath "$payload\docs\build-info.json" -Encoding utf8
+[ordered]@{schemaVersion=1;runtimeVersion=$meta.version;kind='development-source-build';builtAtUtc=[DateTime]::UtcNow.ToString('o');toolchain=$provenance;packagedCore=@{origin=$frameworkOrigin;sha256=$pins['plugins\AurieCore.asi']};yyToolkit=@{release='v5.0.0c';url=$url;sha256=$expected;origin='Pinned official release binary; not the optional source candidate'};sourceFileCount=$sourceHashes.Count;liveGameTested=$false}|ConvertTo-Json -Depth 8|Set-Content -LiteralPath "$payload\docs\build-info.json" -Encoding utf8
 $archive=Join-Path $stage ("Slorm-Loader-"+$meta.version+'.zip')
+if(@(Get-ChildItem -LiteralPath $payload -Recurse -File|Where-Object {$_.Extension -ieq '.exe'}).Count){throw 'Player runtime must not contain any compiled EXE.'}
 Compress-Archive -Path "$payload\*" -DestinationPath $archive
 $sha=(Get-FileHash -LiteralPath $archive).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText((Join-Path $stage 'SHA256SUMS.txt'),$sha+'  '+[IO.Path]::GetFileName($archive)+[Environment]::NewLine)

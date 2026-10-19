@@ -1,5 +1,5 @@
 #pragma once
-#include "SlormModModel.hpp"
+#include "SlormLoaderMetadata.hpp"
 #include <filesystem>
 #include <sstream>
 
@@ -113,12 +113,13 @@ template<class Observer> NativeSnapshot ScanNativeMods(const std::filesystem::pa
 }
 inline bool StatusError(const Json& item) {
     const auto status=item.value("status","");
-    return status=="invalid"||status=="blocked"||status=="failed"||status=="rejected"||status=="not_loaded"||status=="not_initialized"||status=="inspection_failed";
+    return status=="unsupported"||status=="invalid"||status=="blocked"||status=="failed"||status=="rejected"||status=="not_loaded"||status=="not_initialized"||status=="inspection_failed";
 }
-inline Json ModStatusReport(Json jsonItems,const Json& nativeItems,unsigned long pid,bool nativeScanComplete,bool nativeStartupFinished=false) {
-    int jsonActive=0,jsonErrors=0,nativeActive=0,nativeErrors=0,pending=0;
-    for(auto& item:jsonItems){item["source"]="json";jsonActive+=item.value("status","")=="applied";jsonErrors+=StatusError(item);pending+=item.value("status","")=="pending";}
-    for(const auto& item:nativeItems){nativeActive+=item.value("status","")=="loaded";nativeErrors+=StatusError(item);pending+=item.value("status","")=="pending";jsonItems.push_back(item);}
-    return Json{{"schemaVersion",2},{"runtimeVersion",RuntimePackageVersion},{"statApiVersion",RuntimeVersion},{"sessionPid",pid},{"nativeScanComplete",nativeScanComplete},{"nativeScanState",nativeScanComplete?"complete":nativeStartupFinished?"incomplete":"pending"},{"mods",jsonItems},{"active",jsonActive+nativeActive},{"errors",jsonErrors+nativeErrors},{"pending",pending},{"jsonActive",jsonActive},{"nativeActive",nativeActive},{"jsonErrors",jsonErrors},{"nativeErrors",nativeErrors}};
+inline Json ModStatusReport(Json retiredItems,const Json& nativeItems,unsigned long pid,bool complete,bool started=false) {
+    int loaded=0,errors=0,pending=0;
+    for(auto& item:retiredItems){item["source"]="retired_json";errors+=StatusError(item);}
+    const auto unsupported=retiredItems.size();
+    for(const auto& item:nativeItems){loaded+=item.value("status","")=="loaded";errors+=StatusError(item);pending+=item.value("status","")=="pending";retiredItems.push_back(item);}
+    return Json{{"schemaVersion",3},{"runtimeVersion",RuntimePackageVersion},{"sessionPid",pid},{"nativeScanComplete",complete},{"nativeScanState",complete?"complete":started?"incomplete":"pending"},{"mods",retiredItems},{"active",loaded},{"nativeActive",loaded},{"errors",errors},{"pending",pending},{"unsupported",unsupported},{"gameplayPatching",false}};
 }
 }

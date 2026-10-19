@@ -1,12 +1,11 @@
 {
   "schemaVersion": 1,
   "id": "slormancer-runtime",
-  "name": "Slormancer Mod Runtime",
-  "version": "0.4.2",
+  "name": "Slorm Loader",
+  "version": "0.6.0",
   "author": "nick",
-  "description": "Aurie 2.0.2 and YYToolkit 5.0.0c runtime with a pinned Ultimate ASI Loader version proxy. Leaves the game executable unchanged. Includes stat-patch API, JSON/native status and diagnostics. SAC compatibility remains subject to Windows trust decisions.",
+  "description": "Mod startup, native discovery/status and bootstrap management. Gameplay APIs and the shared Lua Runtime are separate mods. JSON skill/passive patching has been removed.",
   "type": "runtime",
   "requires": [],
-  "conflicts": [],
-  "patches": []
+  "conflicts": []
 }
